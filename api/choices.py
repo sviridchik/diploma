@@ -15,7 +15,7 @@ TYPE_CHOICES = [
     ('injection', 'injection'),
     ('ampule', 'ampule'),
     ('pill', 'pill'),
-    ('SUSPENSION', 'SUSPENSION'),
+    ('suspension', 'suspension'),
 ]
 
 SPEC_CHOICES = [
@@ -34,7 +34,7 @@ FOOD_CHOICES = [
     ('No matter', 'No matter')
 ]
 DOSE_CHOICES = [
-    ('PCS', 'PCS'),
+    ('pcs', 'pcs'),
     ('ml', 'ml'),
 ]
 DEVISE_CHOICES = [
