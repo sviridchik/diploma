@@ -88,6 +88,14 @@ class DoctorViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Doctor.objects.filter(patient__user=self.request.user)
 
+class DoctorForWardViewSet(viewsets.ModelViewSet):
+    """ доктора подопечного (надо еще при выборе проверить что он вообще его подопечный)"""
+    serializer_class = DoctorSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Doctor.objects.filter(patient__user=self.request.ward)
+
 
 class DoctorVisitViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
