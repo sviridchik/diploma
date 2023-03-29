@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
-
+from  medicine.views import get_type_of_user
 from .models import Patient, PatientSetting, Guardian, Tariff, Tokens, Tranzaction, Doctor, DoctorVisit
 from .serializers import PatientSerializer, PatientSettingSerializer, GuardianSerializer, TariffSerializer, \
     TokensSerializer, TranzactionSerializer, DoctorVisitSerializer, DoctorSerializer, UserSerializer, ReadOnlyDoctorVisitSerializer
@@ -83,22 +83,30 @@ class TranzactionViewSet(viewsets.ModelViewSet):
 
 class DoctorViewSet(viewsets.ModelViewSet):
     serializer_class = DoctorSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Doctor.objects.filter(patient__user=self.request.user)
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
+            try:
+                ward = int(self.request.GET.get('ward'))
+            except Exception:
+                raise Exception("404 bad ward")
+            return Doctor.objects.filter(patient__user=ward)
+        else:
+            return Doctor.objects.filter(patient__user=self.request.user)
 
 class DoctorForWardViewSet(viewsets.ModelViewSet):
     """ доктора подопечного (надо еще при выборе проверить что он вообще его подопечный)"""
     serializer_class = DoctorSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Doctor.objects.filter(patient__user=self.request.ward)
 
 
 class DoctorVisitViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return DoctorVisit.objects.filter(patient__user=self.request.user)

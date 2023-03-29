@@ -7,11 +7,11 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from rest_framework.response import Response
-import numpy as np
+# import numpy as np
 from .models import Devise, Logs, MissedMed, TakenMed, Achievement, Label
 from .serializers import DeviseSerializer, LogsSerializer, MissedMedSerializer, TakenMedSerializer, \
     AchievementSerializer, LabelSerializer
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 class AnalyticTakenGuardianView(generics.ListAPIView):
@@ -95,7 +95,7 @@ class AnalyticTakenGuardianView(generics.ListAPIView):
 
 
 class AnalyticTakenView(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         final_data = {"taken": 0,
@@ -118,7 +118,7 @@ class AnalyticTakenView(generics.ListAPIView):
 
 
 class ReportTakenGuardianView(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         final_data = {"taken": 0,

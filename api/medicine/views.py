@@ -1,10 +1,10 @@
 import datetime
 import json
-
-import matplotlib.pyplot as plt
-import numpy as np
+from django.contrib.auth.models import User
+# import matplotlib.pyplot as plt
+# import numpy as np
 from django.shortcuts import get_object_or_404
-from managment.models import Patient
+from managment.models import Patient,Guardian
 from django.utils import timezone
 from rest_framework import generics
 from rest_framework import status
@@ -79,7 +79,7 @@ class CollectStatisticView(generics.ListAPIView):
 
 
 class TakeViewSet(generics.RetrieveAPIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk, *args, **kwargs):
         queryset = Cure.objects.filter(patient__user=request.user)
@@ -112,10 +112,21 @@ class TakeViewSet(generics.RetrieveAPIView):
             return Response({"error": "no need to take it"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
 
-
+def get_type_of_user(data):
+    try:
+        # self.request.user.patient
+        data.guardian
+    except Guardian.DoesNotExist as e:
+        try:
+            # self.request.user.patient
+            data.patient
+        except Patient.DoesNotExist as e:
+            return "not found"
+        return "patient"
+    return "guardian"
 class CureViewSet(viewsets.ModelViewSet):
     serializer_class = MainCureSerializer
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
@@ -123,17 +134,26 @@ class CureViewSet(viewsets.ModelViewSet):
         else:
             return MainCureSerializer
 
+    """ или лучше так ?"""
     def get_queryset(self):
-        return Cure.objects.filter(patient__user=self.request.user)
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
+            try:
+                ward  = int(self.request.GET.get('ward'))
+            except Exception:
+                raise Exception("404 bad ward")
+            return Cure.objects.filter(patient__user=ward)
+        else:
+            return Cure.objects.filter(patient__user=self.request.user)
 
 
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = MainScheduleSerializer
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
 
 class TimeTableViewSet(viewsets.ModelViewSet):
     queryset = TimeTable.objects.all()
     serializer_class = MainTimeTableSerializer
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
