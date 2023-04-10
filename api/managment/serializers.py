@@ -1,16 +1,15 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import Patient, PatientSetting, Guardian, Tariff, Tokens, Tranzaction, Doctor, DoctorVisit
+from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tokens, Tranzaction
 
 
 class UserSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(read_only=True)
-
     class Meta:
         model = User
         fields = ["id", 'email', 'username', 'password']
         extra_kwargs = {'password': {'write_only': True}}
+
 
 #     def create(self, validated_data):
 #         user = User(
@@ -23,32 +22,46 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PatientSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        guard = super().create(validated_data)
-        return guard
+    user = UserSerializer()
 
     class Meta:
         model = Patient
         fields = "__all__"
 
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        patient = super().create(validated_data)
+        return patient
+
+    def update(self, instance, validated_data):
+        if 'user' in validated_data:
+            user_serializer = self.fields['user']
+            user_serializer.update(instance.user, validated_data['user'])
+            validated_data.pop('user')
+
+        return super().update(instance, validated_data)
+
 
 class GuardianSerializer(serializers.ModelSerializer):
-    # care_about = PatientSerializer(read_only=True)
-    user = UserSerializer(read_only=True)
+    user = UserSerializer()
     care_about = PatientSerializer(read_only=True)
+
+    class Meta:
+        model = Guardian
+        exclude = ['is_send', 'banned']
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         guard = super().create(validated_data)
         return guard
 
-    class Meta:
-        model = Guardian
-        # fields = "__all__"
-        exclude = ['is_send', 'banned']
+    def update(self, instance, validated_data):
+        if 'user' in validated_data:
+            user_serializer = self.fields['user']
+            user_serializer.update(instance.user, validated_data['user'])
+            validated_data.pop('user')
+
+        return super().update(instance, validated_data)
 
 
 class PatientSettingSerializer(serializers.ModelSerializer):
@@ -76,7 +89,6 @@ class TranzactionSerializer(serializers.ModelSerializer):
 
 
 class DoctorSerializer(serializers.ModelSerializer):
-
     def create(self, validated_data):
         validated_data['patient'] = self.context['request'].user.patient
         return super().create(validated_data)
@@ -94,7 +106,6 @@ class DoctorSerializer(serializers.ModelSerializer):
 
 
 class DoctorVisitSerializer(serializers.ModelSerializer):
-
     def create(self, validated_data):
         validated_data['patient'] = self.context['request'].user.patient
         return super().create(validated_data)
