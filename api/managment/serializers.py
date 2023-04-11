@@ -1,5 +1,8 @@
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tokens, Tranzaction
 
@@ -131,3 +134,18 @@ class ReadOnlyDoctorVisitSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'patient': {'default': None},
         }
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    password_old = serializers.CharField(max_length=128, min_length=8)
+    password_new = serializers.CharField(max_length=128, min_length=8)
+
+    def validate_password_old(self, password_old):
+        if not self.instance.check_password(password_old):
+            raise ValidationError('Old password is not correct')
+        return password_old
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['password_new'])
+        instance.save()
+        return instance
