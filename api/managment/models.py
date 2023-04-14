@@ -23,7 +23,7 @@ class Guardian(models.Model):
     phone = models.BigIntegerField(verbose_name=_('phone'), default=0, blank=True, unique=True)
 
     def __str__(self):
-        return str(self.first_name) + " " + str(self.last_name)
+        return self.first_name + " " + self.last_name
 
 
 class PatienGuardianRelation(models.Model):
@@ -38,6 +38,9 @@ class PatienGuardianRelation(models.Model):
     relationship = models.CharField(
         _('relationship'), max_length=150, blank=True, help_text="Родство опекуна с опекуемым"
     )
+
+    def __str__(self) -> str:
+        return f'{self.guardian} -> {self.patient}'
 
 
 class PatientSetting(models.Model):

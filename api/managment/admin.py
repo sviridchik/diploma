@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction
+from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction, PatienGuardianRelation
 
 
 # Register your models here.
@@ -36,4 +36,8 @@ class DoctorAdmin(admin.ModelAdmin):
 
 @admin.register(DoctorVisit)
 class DoctorVisitAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(PatienGuardianRelation)
+class PatienGuardianRelationAdmin(admin.ModelAdmin):
     pass
