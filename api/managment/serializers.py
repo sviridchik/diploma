@@ -51,7 +51,7 @@ class GuardianSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Guardian
-        exclude = ['is_send', 'banned']
+        exclude = ['should_send_report', 'banned']
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
