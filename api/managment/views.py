@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tokens, Tranzaction
+from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction
 from .serializers import (
     ChangePasswordSerializer,
     DoctorSerializer,
@@ -14,7 +14,6 @@ from .serializers import (
     PatientSettingSerializer,
     ReadOnlyDoctorVisitSerializer,
     TariffSerializer,
-    TokensSerializer,
     TranzactionSerializer,
     UserSerializer,
 )
@@ -83,11 +82,6 @@ class TariffViewSet(viewsets.ModelViewSet):
     queryset = Tariff.objects.all()
     serializer_class = TariffSerializer
     permission_classes = [IsAuthenticated]
-
-
-class TokensViewSet(viewsets.ModelViewSet):
-    queryset = Tokens.objects.all()
-    serializer_class = TokensSerializer
 
 
 class TranzactionViewSet(viewsets.ModelViewSet):

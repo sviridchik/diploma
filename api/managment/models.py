@@ -48,13 +48,6 @@ class PatientSetting(models.Model):
     language = models.CharField(verbose_name=_("language"), max_length=255, choices=LANGUAGE_CHOICES)
 
 
-class Tokens(models.Model):
-    # TODO most likely deprecated model
-    token = models.CharField(verbose_name=_("action"), max_length=255)
-    date = models.DateTimeField(verbose_name=_("date"))
-    user = models.ForeignKey(Patient, on_delete=models.CASCADE)
-
-
 class Tariff(models.Model):
     price = models.DecimalField(verbose_name=_("price"), max_digits=20, decimal_places=12)
     date = models.DateTimeField(verbose_name=_("date_start"))

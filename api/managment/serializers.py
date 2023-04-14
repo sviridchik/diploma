@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tokens, Tranzaction
+from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -70,12 +70,6 @@ class GuardianSerializer(serializers.ModelSerializer):
 class PatientSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientSetting
-        fields = "__all__"
-
-
-class TokensSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tokens
         fields = "__all__"
 
 
