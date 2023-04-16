@@ -15,7 +15,7 @@ from .serializers import DeviseSerializer, LogsSerializer, MissedMedSerializer, 
 
 
 class AnalyticTakenGuardianView(generics.ListAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     queryset = TakenMed.objects.all()
     serializer_class = TakenMedSerializer
 
@@ -143,34 +143,34 @@ class ReportTakenGuardianView(generics.ListAPIView):
 class DeviseViewSet(viewsets.ModelViewSet):
     queryset = Devise.objects.all()
     serializer_class = DeviseSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
 
 class LogsViewSet(viewsets.ModelViewSet):
     queryset = Logs.objects.all()
     serializer_class = LogsSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
 
 class LabelViewSet(viewsets.ModelViewSet):
     queryset = Label.objects.all()
     serializer_class = LabelSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
 
 class AchievementViewSet(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
     serializer_class = AchievementSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
 
 class MissedMedViewSet(viewsets.ModelViewSet):
     queryset = MissedMed.objects.all()
     serializer_class = MissedMedSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
 
 class TakenMedViewSet(viewsets.ModelViewSet):
     queryset = TakenMed.objects.all()
     serializer_class = TakenMedSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)

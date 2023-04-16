@@ -1,8 +1,19 @@
-from rest_framework import routers
 from django.urls import path
-from .views import PatientViewSet, PatientSettingViewSet, GuardianViewSet, \
-    TokensViewSet, TariffViewSet, TranzactionViewSet,\
-    DoctorViewSet,DoctorVisitViewSet,WhoIAmView,DoctorForWardViewSet
+from rest_framework import routers
+
+from .views import (
+    DoctorViewSet,
+    DoctorVisitViewSet,
+    GuardianViewSet,
+    PatientSettingViewSet,
+    PatientViewSet,
+    TariffViewSet,
+    TokensViewSet,
+    TranzactionViewSet,
+    WhoIAmView,
+    change_password_view,
+    DoctorForWardViewSet,
+)
 
 router = routers.DefaultRouter()
 router.register('patients', PatientViewSet, basename='patients')
@@ -17,6 +28,7 @@ router.register('warddoctor', DoctorForWardViewSet, basename='warddoctor')
 
 
 urlpatterns = [
-   path('whoiam/', WhoIAmView.as_view()),
+    path('whoiam/', WhoIAmView.as_view()),
+    path('change-password/', change_password_view),
 ]
 urlpatterns += router.urls
