@@ -1,4 +1,5 @@
 from django.urls import path
+
 from .views import (
     PatientViewSet,
     PatientSettingViewSet,
@@ -10,6 +11,7 @@ from .views import (
     WhoIAmView,
     DoctorForWardViewSet,
     change_password_view,
+    DoctorForWardViewSet,
 )
 from rest_framework import routers
 
