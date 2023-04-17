@@ -1,27 +1,34 @@
-from rest_framework import viewsets
 from django.contrib.auth.models import User
-from rest_framework import generics
+from rest_framework import generics, status, viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from  .utils import get_type_of_user
-from .models import Patient, PatientSetting, Guardian, Tariff, Tokens, Tranzaction, Doctor, DoctorVisit
-from .serializers import PatientSerializer, PatientSettingSerializer, GuardianSerializer, TariffSerializer, \
-    TokensSerializer, TranzactionSerializer, DoctorVisitSerializer, DoctorSerializer, UserSerializer, ReadOnlyDoctorVisitSerializer
+from .utils import get_type_of_user
+from .models import Patient, PatientSetting, Guardian, Tariff, Tranzaction, Doctor, DoctorVisit
+from .serializers import (
+    PatientSerializer,
+    PatientSettingSerializer,
+    GuardianSerializer,
+    TariffSerializer,
+    TranzactionSerializer,
+    DoctorVisitSerializer,
+    DoctorSerializer,
+    UserSerializer,
+    ReadOnlyDoctorVisitSerializer,
+    ChangePasswordSerializer,
+)
 from rest_framework.permissions import IsAuthenticated
 
 
 class WhoIAmView(generics.ListAPIView):
-    # permission_classes = (IsAuthenticated,)
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
-        # user = User.objects.all()[0]
         user = request.user
         patient = Patient.objects.filter(user=user)
         guardian = Guardian.objects.filter(user=user)
-        res = {"type": None,
-               "user": None}
+        res = {"type": None, "user": None}
         if len(patient) != 0:
             res["type"] = "patient"
             res["user"] = PatientSerializer(tuple(patient)[0]).data
@@ -35,16 +42,20 @@ class WhoIAmView(generics.ListAPIView):
         return Response(res, status=status.HTTP_200_OK)
 
 
-class PatientViewSet(viewsets.ModelViewSet):
-    queryset = Patient.objects.all()
+class PatientViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = PatientSerializer
     permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        resp = super().create(request, *args, **kwargs)
-        # raise Exception(request.user, type(request.user))
-        user: User = request.user
-        return resp
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        return queryset.get(user=self.request.user)
+
+    def get_queryset(self):
+        user: User = self.request.user
+        if user.is_superuser:
+            return Patient.objects.all()
+        else:
+            return Patient.objects.filter(user=user)
 
 
 class PatientSettingViewSet(viewsets.ModelViewSet):
@@ -53,27 +64,26 @@ class PatientSettingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-class GuardianViewSet(viewsets.ModelViewSet):
-    queryset = Guardian.objects.all()
+class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = GuardianSerializer
     permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        resp = super().create(request, *args, **kwargs)
-        # raise Exception(request.user, type(request.user))
-        user: User = request.user
-        return resp
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        return queryset.get(user=self.request.user)
+
+    def get_queryset(self):
+        user: User = self.request.user
+        if user.is_superuser:
+            return Guardian.objects.all()
+        else:
+            return Guardian.objects.filter(user=user)
 
 
 class TariffViewSet(viewsets.ModelViewSet):
     queryset = Tariff.objects.all()
     serializer_class = TariffSerializer
     permission_classes = [IsAuthenticated]
-
-
-class TokensViewSet(viewsets.ModelViewSet):
-    queryset = Tokens.objects.all()
-    serializer_class = TokensSerializer
 
 
 class TranzactionViewSet(viewsets.ModelViewSet):
@@ -96,8 +106,10 @@ class DoctorViewSet(viewsets.ModelViewSet):
         else:
             return Doctor.objects.filter(patient__user=self.request.user)
 
+
 class DoctorForWardViewSet(viewsets.ModelViewSet):
-    """ доктора подопечного (надо еще при выборе проверить что он вообще его подопечный)"""
+    """доктора подопечного (надо еще при выборе проверить что он вообще его подопечный)"""
+
     serializer_class = DoctorSerializer
     permission_classes = [IsAuthenticated]
 
@@ -116,3 +128,14 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
             return ReadOnlyDoctorVisitSerializer
         else:
             return DoctorVisitSerializer
+
+
+@api_view(http_method_names=['PATCH'])
+@permission_classes([IsAuthenticated])
+def change_password_view(request):
+    serializer = ChangePasswordSerializer(request.user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(status=status.HTTP_200_OK)
+    else:
+        return Response({'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,9 +1,7 @@
-# Create your models here.
 from choices import COLORS_CHOICES, LANGUAGE_CHOICES, SPEC_CHOICES
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
@@ -17,30 +15,32 @@ class Patient(models.Model):
     def __str__(self):
         return self.first_name + " " + self.last_name
 
-    class Meta:
-        ordering = ('id',)
-
 
 class Guardian(models.Model):
-
-    banned = models.BooleanField(
-        _('banned'), help_text="Был ли он забанен опекуном через администратора", null=True, blank=True)
-    is_send = models.BooleanField(_('is_send'), help_text="отправлять ли отчеты об опекуне",
-                                  null=True, blank=True, default=False)
-    relationship = models.CharField(_('relationship'), max_length=150, blank=True,
-                                    help_text="родство с опекуном", null=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(_('first name'), max_length=150, blank=True)
     last_name = models.CharField(_('last name'), max_length=150, blank=True)
     phone = models.BigIntegerField(verbose_name=_('phone'), default=0, blank=True, unique=True)
-    care_about = models.OneToOneField(Patient, verbose_name=_(
-        'care about'), blank=True, null=True, on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return str(self.first_name) + " " + str(self.last_name)
+        return self.first_name + " " + self.last_name
 
-    class Meta:
-        ordering = ('id',)
+
+class PatienGuardianRelation(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    guardian = models.ForeignKey(Guardian, on_delete=models.CASCADE)
+    banned = models.BooleanField(
+        _('banned'), help_text="Был ли он забанен опекуном через администратора", default=False
+    )
+    should_send_report = models.BooleanField(
+        _('should send report'), help_text="Отправлять ли отчеты об опекуемом", default=True
+    )
+    relationship = models.CharField(
+        _('relationship'), max_length=150, blank=True, help_text="Родство опекуна с опекуемым"
+    )
+
+    def __str__(self) -> str:
+        return f'{self.guardian} -> {self.patient}'
 
 
 class PatientSetting(models.Model):
@@ -49,12 +49,6 @@ class PatientSetting(models.Model):
     font = models.IntegerField(verbose_name=_('font'))
     city = models.CharField(verbose_name=_("city"), max_length=255)
     language = models.CharField(verbose_name=_("language"), max_length=255, choices=LANGUAGE_CHOICES)
-
-
-class Tokens(models.Model):
-    token = models.CharField(verbose_name=_("action"), max_length=255)
-    date = models.DateTimeField(verbose_name=_("date"))
-    user = models.ForeignKey(Patient, on_delete=models.CASCADE)
 
 
 class Tariff(models.Model):
@@ -77,14 +71,8 @@ class Doctor(models.Model):
     specialty = models.CharField(_('specialty'), max_length=150, blank=True, choices=SPEC_CHOICES)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
 
-    class Meta:
-        ordering = ('id',)
-
 
 class DoctorVisit(models.Model):
     date = models.DateTimeField(verbose_name=_("date_start"))
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-
-    class Meta:
-        ordering = ('id',)
