@@ -12,11 +12,13 @@ from .views import (
     DoctorForWardViewSet,
     change_password_view,
     DoctorForWardViewSet,
+    WardViewSet,
 )
 from rest_framework import routers
 
 
 router = routers.DefaultRouter()
+router.register('ward', WardViewSet, basename='wards')
 router.register('patients', PatientViewSet, basename='patients')
 router.register('settings', PatientSettingViewSet, basename='settings')
 router.register('guardians', GuardianViewSet, basename='guardians')
