@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from statistic.models import TakenMed, MissedMed
 from statistic.serializers import TakenMedSerializer
+from  managment.utils import get_type_of_user
 
 from .models import Cure, TimeTable, Schedule
 from .serializers import CureSerializer, MainScheduleSerializer, MainCureSerializer, \
@@ -112,18 +113,7 @@ class TakeViewSet(generics.RetrieveAPIView):
             return Response({"error": "no need to take it"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
 
-def get_type_of_user(data):
-    try:
-        # self.request.user.patient
-        data.guardian
-    except Guardian.DoesNotExist as e:
-        try:
-            # self.request.user.patient
-            data.patient
-        except Patient.DoesNotExist as e:
-            return "not found"
-        return "patient"
-    return "guardian"
+
 class CureViewSet(viewsets.ModelViewSet):
     serializer_class = MainCureSerializer
     # permission_classes = (IsAuthenticated,)

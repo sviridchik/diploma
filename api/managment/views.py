@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
-from  medicine.views import get_type_of_user
+from  .utils import get_type_of_user
 from .models import Patient, PatientSetting, Guardian, Tariff, Tokens, Tranzaction, Doctor, DoctorVisit
 from .serializers import PatientSerializer, PatientSettingSerializer, GuardianSerializer, TariffSerializer, \
     TokensSerializer, TranzactionSerializer, DoctorVisitSerializer, DoctorSerializer, UserSerializer, ReadOnlyDoctorVisitSerializer
@@ -38,7 +38,7 @@ class WhoIAmView(generics.ListAPIView):
 class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         resp = super().create(request, *args, **kwargs)
@@ -50,13 +50,13 @@ class PatientViewSet(viewsets.ModelViewSet):
 class PatientSettingViewSet(viewsets.ModelViewSet):
     queryset = PatientSetting.objects.all()
     serializer_class = PatientSettingSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 class GuardianViewSet(viewsets.ModelViewSet):
     queryset = Guardian.objects.all()
     serializer_class = GuardianSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         resp = super().create(request, *args, **kwargs)
@@ -68,7 +68,7 @@ class GuardianViewSet(viewsets.ModelViewSet):
 class TariffViewSet(viewsets.ModelViewSet):
     queryset = Tariff.objects.all()
     serializer_class = TariffSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 class TokensViewSet(viewsets.ModelViewSet):
@@ -83,7 +83,7 @@ class TranzactionViewSet(viewsets.ModelViewSet):
 
 class DoctorViewSet(viewsets.ModelViewSet):
     serializer_class = DoctorSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         type_user = get_type_of_user(self.request.user)
@@ -99,14 +99,14 @@ class DoctorViewSet(viewsets.ModelViewSet):
 class DoctorForWardViewSet(viewsets.ModelViewSet):
     """ доктора подопечного (надо еще при выборе проверить что он вообще его подопечный)"""
     serializer_class = DoctorSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Doctor.objects.filter(patient__user=self.request.ward)
 
 
 class DoctorVisitViewSet(viewsets.ModelViewSet):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return DoctorVisit.objects.filter(patient__user=self.request.user)
