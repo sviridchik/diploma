@@ -102,6 +102,17 @@ class DoctorSerializer(serializers.ModelSerializer):
         }
 
 
+class DoctorVisitViewOnlySerializer (serializers.ModelSerializer):
+    doctor = DoctorSerializer()
+
+    class Meta:
+        model = DoctorVisit
+        fields = "__all__"
+        extra_kwargs = {
+            'patient': {'default': None},
+        }
+
+
 class DoctorVisitSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['patient'] = self.context['request'].user.patient

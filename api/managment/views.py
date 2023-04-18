@@ -17,6 +17,7 @@ from .serializers import (
     UserSerializer,
     ReadOnlyDoctorVisitSerializer,
     ChangePasswordSerializer,
+    DoctorVisitViewOnlySerializer,
 )
 from rest_framework.permissions import IsAuthenticated
 from .models import PatienGuardianRelation
@@ -45,7 +46,7 @@ class WhoIAmView(generics.ListAPIView):
 
 class WardViewSet(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
@@ -114,8 +115,9 @@ class DoctorViewSet(viewsets.ModelViewSet):
     def create(self, request):
         if request.GET.get("ward") is not None:
             try:
-                id = int(request.GET.get("ward"))
-                request.user = User.objects.get(id=id)
+                id = int(self.request.query_params['ward'])
+                ward = Patient.objects.get(id=id)
+                request.user = ward.user
             except Exception:
                 raise Exception("404 bad ward")
         return super().create(request)
@@ -124,45 +126,57 @@ class DoctorViewSet(viewsets.ModelViewSet):
         type_user = get_type_of_user(self.request.user)
         if type_user == "guardian":
             try:
-                ward = int(self.request.GET.get('ward'))
+                ward = int(self.request.query_params['ward'])
+                ward = Patient.objects.get(id=ward)
             except Exception:
                 raise Exception("404 bad ward")
-            return Doctor.objects.filter(patient__user=ward)
+            return Doctor.objects.filter(patient=ward)
         else:
             return Doctor.objects.filter(patient__user=self.request.user)
 
 
-class DoctorForWardViewSet(viewsets.ModelViewSet):
-    """доктора подопечного (надо еще при выборе проверить что он вообще его подопечный)"""
-
-    serializer_class = DoctorSerializer
+class DoctorVisitViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return Doctor.objects.filter(patient__user=self.request.ward)
-
-
-class DoctorVisitViewSet(viewsets.ModelViewSet):
-    # permission_classes = [IsAuthenticated]
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return DoctorVisitViewOnlySerializer
+        else:
+            return DoctorVisitSerializer
 
     def create(self, request):
         if request.GET.get("ward") is not None:
             try:
                 id = int(request.GET.get("ward"))
-                request.user = User.objects.get(id=id)
+                ward = Patient.objects.get(id=id)
+                request.user = ward.user
             except Exception:
                 raise Exception("404 bad ward")
         # do your thing here
         return super().create(request)
 
+    def destroy(self, request, *args, **kwargs):
+        if request.GET.get("ward") is not None:
+            try:
+                id = int(request.GET.get("ward"))
+                ward = Patient.objects.get(id=id)
+                request.user = ward.user
+            except Exception:
+                raise Exception("404 bad ward")
+
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def get_queryset(self):
         type_user = get_type_of_user(self.request.user)
         if type_user == "guardian":
             try:
-                ward = int(self.request.GET.get('ward'))
+                ward = int(self.request.query_params['ward'])
+                ward = Patient.objects.get(id=ward)
             except Exception:
                 raise Exception("404 bad ward")
-            return DoctorVisit.objects.filter(patient__user=ward)
+            return DoctorVisit.objects.filter(patient=ward)
         else:
             return DoctorVisit.objects.filter(patient__user=self.request.user)
 

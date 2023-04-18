@@ -9,9 +9,7 @@ from .views import (
     DoctorViewSet,
     DoctorVisitViewSet,
     WhoIAmView,
-    DoctorForWardViewSet,
     change_password_view,
-    DoctorForWardViewSet,
     WardViewSet,
 )
 from rest_framework import routers
@@ -26,7 +24,6 @@ router.register('tariff', TariffViewSet, basename='tariff')
 router.register('tranzaction', TranzactionViewSet, basename='tranzaction')
 router.register('doctor', DoctorViewSet, basename='doctor')
 router.register('doctorvisit', DoctorVisitViewSet, basename='doctorvisit')
-router.register('warddoctor', DoctorForWardViewSet, basename='warddoctor')
 
 
 urlpatterns = [

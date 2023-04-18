@@ -29,7 +29,7 @@ from .serializers import (
 class CollectStatisticView(generics.ListAPIView):
     """отчет за последни е 10 дней"""
 
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     queryset = Cure.objects.all()
     serializer_class = CureSerializer
 
@@ -87,7 +87,7 @@ class CollectStatisticView(generics.ListAPIView):
 
 
 class TakeViewSet(generics.RetrieveAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk, *args, **kwargs):
         queryset = Cure.objects.filter(patient__user=request.user)
@@ -124,17 +124,49 @@ class TakeViewSet(generics.RetrieveAPIView):
 
 class CureViewSet(viewsets.ModelViewSet):
     serializer_class = MainCureSerializer
+    permission_classes = (IsAuthenticated,)
 
-    # permission_classes = (IsAuthenticated,)
     def create(self, request):
         if request.GET.get("ward") is not None:
             try:
                 id = int(request.GET.get("ward"))
-                request.user = User.objects.get(id=id)
+                ward = Patient.objects.get(id=id)
+                request.user = ward.user
             except Exception:
                 raise Exception("404 bad ward")
-        # do your thing here
         return super().create(request)
+
+    def update(self, request, *args, **kwargs):
+        if request.GET.get("ward") is not None:
+            try:
+                id = int(request.GET.get("ward"))
+                ward = Patient.objects.get(id=id)
+                request.user = ward.user
+            except Exception:
+                raise Exception("404 bad ward")
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        if request.GET.get("ward") is not None:
+            try:
+                id = int(request.GET.get("ward"))
+                ward = Patient.objects.get(id=id)
+                request.user = ward.user
+            except Exception:
+                raise Exception("404 bad ward")
+
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
@@ -142,16 +174,16 @@ class CureViewSet(viewsets.ModelViewSet):
         else:
             return MainCureSerializer
 
-    """ или лучше так ?"""
-
     def get_queryset(self):
         type_user = get_type_of_user(self.request.user)
         if type_user == "guardian":
             try:
-                ward = int(self.request.GET.get('ward'))
+                ward = int(self.request.query_params['ward'])
+                ward = Patient.objects.get(id=ward)
+
             except Exception:
-                raise Exception("404 bad ward")
-            return Cure.objects.filter(patient__user=ward)
+                raise Exception("404 bad ward!!!!")
+            return Cure.objects.filter(patient=ward)
         else:
             return Cure.objects.filter(patient__user=self.request.user)
 
@@ -159,10 +191,10 @@ class CureViewSet(viewsets.ModelViewSet):
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = MainScheduleSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
 
 class TimeTableViewSet(viewsets.ModelViewSet):
     queryset = TimeTable.objects.all()
     serializer_class = MainTimeTableSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
