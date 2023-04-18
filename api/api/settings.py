@@ -167,8 +167,13 @@ SWAGGER_SETTINGS = {
 DOMAIN = 'localhost:3000'
 SITE_NAME = 'Tipul'
 DJOSER = {
-    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
+    # Password reset config
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
+    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
+    # Activation config
+    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_CONFIRMATION_EMAIL': True,
+    'ACTIVATION_URL': 'activate/{uid}/{token}',
 }
 
 
