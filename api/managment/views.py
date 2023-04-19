@@ -21,7 +21,7 @@ from .serializers import (
 )
 from rest_framework.permissions import IsAuthenticated
 from .models import PatienGuardianRelation
-
+from rest_framework.exceptions import ValidationError
 
 class WhoIAmView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
@@ -110,7 +110,7 @@ class TranzactionViewSet(viewsets.ModelViewSet):
 
 class DoctorViewSet(viewsets.ModelViewSet):
     serializer_class = DoctorSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def create(self, request):
         if request.GET.get("ward") is not None:
@@ -119,7 +119,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
                 ward = Patient.objects.get(id=id)
                 request.user = ward.user
             except Exception:
-                raise Exception("404 bad ward")
+                raise ValidationError({"detail":"404 bad ward"})
         return super().create(request)
 
     def get_queryset(self):
@@ -129,7 +129,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
                 ward = int(self.request.query_params['ward'])
                 ward = Patient.objects.get(id=ward)
             except Exception:
-                raise Exception("404 bad ward")
+                raise ValidationError({"detail":"404 bad ward"})
             return Doctor.objects.filter(patient=ward)
         else:
             return Doctor.objects.filter(patient__user=self.request.user)
@@ -144,6 +144,8 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
         else:
             return DoctorVisitSerializer
 
+# raise ValidationError({"detail": "404 bad ward"})
+
     def create(self, request):
         if request.GET.get("ward") is not None:
             try:
@@ -151,7 +153,7 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
                 ward = Patient.objects.get(id=id)
                 request.user = ward.user
             except Exception:
-                raise Exception("404 bad ward")
+                raise ValidationError({"detail": "404 bad ward"})
         # do your thing here
         return super().create(request)
 
@@ -162,7 +164,7 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
                 ward = Patient.objects.get(id=id)
                 request.user = ward.user
             except Exception:
-                raise Exception("404 bad ward")
+                raise ValidationError({"detail": "404 bad ward"})
 
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -175,7 +177,7 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
                 ward = int(self.request.query_params['ward'])
                 ward = Patient.objects.get(id=ward)
             except Exception:
-                raise Exception("404 bad ward")
+                raise ValidationError({"detail": "404 bad ward"})
             return DoctorVisit.objects.filter(patient=ward)
         else:
             return DoctorVisit.objects.filter(patient__user=self.request.user)

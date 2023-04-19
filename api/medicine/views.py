@@ -24,6 +24,7 @@ from .serializers import (
     MainTimeTableSerializer,
     ViewOnlyCureSerializer,
 )
+from rest_framework.exceptions import ValidationError
 
 
 class CollectStatisticView(generics.ListAPIView):
@@ -133,7 +134,7 @@ class CureViewSet(viewsets.ModelViewSet):
                 ward = Patient.objects.get(id=id)
                 request.user = ward.user
             except Exception:
-                raise Exception("404 bad ward")
+                raise ValidationError({"detail": "404 bad ward"})
         return super().create(request)
 
     def update(self, request, *args, **kwargs):
@@ -143,7 +144,7 @@ class CureViewSet(viewsets.ModelViewSet):
                 ward = Patient.objects.get(id=id)
                 request.user = ward.user
             except Exception:
-                raise Exception("404 bad ward")
+                raise ValidationError({"detail": "404 bad ward"})
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -162,7 +163,7 @@ class CureViewSet(viewsets.ModelViewSet):
                 ward = Patient.objects.get(id=id)
                 request.user = ward.user
             except Exception:
-                raise Exception("404 bad ward")
+                raise ValidationError({"detail": "404 bad ward"})
 
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -182,7 +183,7 @@ class CureViewSet(viewsets.ModelViewSet):
                 ward = Patient.objects.get(id=ward)
 
             except Exception:
-                raise Exception("404 bad ward!!!!")
+                raise ValidationError({"detail": "404 bad ward"})
             return Cure.objects.filter(patient=ward)
         else:
             return Cure.objects.filter(patient__user=self.request.user)
