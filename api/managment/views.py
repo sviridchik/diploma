@@ -110,7 +110,7 @@ class TranzactionViewSet(viewsets.ModelViewSet):
 
 class DoctorViewSet(viewsets.ModelViewSet):
     serializer_class = DoctorSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def create(self, request):
         if request.GET.get("ward") is not None:
