@@ -7,11 +7,19 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from rest_framework.response import Response
-import numpy as np
+
+# import numpy as np
 from .models import Devise, Logs, MissedMed, TakenMed, Achievement, Label
-from .serializers import DeviseSerializer, LogsSerializer, MissedMedSerializer, TakenMedSerializer, \
-    AchievementSerializer, LabelSerializer
-import matplotlib.pyplot as plt
+from .serializers import (
+    DeviseSerializer,
+    LogsSerializer,
+    MissedMedSerializer,
+    TakenMedSerializer,
+    AchievementSerializer,
+    LabelSerializer,
+)
+
+# import matplotlib.pyplot as plt
 
 
 class AnalyticTakenGuardianView(generics.ListAPIView):
@@ -26,8 +34,7 @@ class AnalyticTakenGuardianView(generics.ListAPIView):
         # TODO:to make it right
         user = request.user
         # user = User.objects.filter(username="ivan")[0]
-        final_data = {"принятые": 0,
-                      "пропущенные": 0}
+        final_data = {"принятые": 0, "пропущенные": 0}
         if len(Guardian.objects.filter(user=user)) == 0:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
         guard = Guardian.objects.filter(user=user)[0]
@@ -72,7 +79,6 @@ class AnalyticTakenGuardianView(generics.ListAPIView):
 
                     # print(x, y)
         if len(x) > 10:
-
             x, y = x[-10:], y[-10:]
         final_data["x"] = x
         final_data["y"] = y
@@ -95,11 +101,10 @@ class AnalyticTakenGuardianView(generics.ListAPIView):
 
 
 class AnalyticTakenView(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
-        final_data = {"taken": 0,
-                      "missed": 0}
+        final_data = {"taken": 0, "missed": 0}
 
         cures = TakenMed.objects.filter(patient__user=request.user)
         cures_missed = MissedMed.objects.filter(patient__user=request.user)
@@ -118,11 +123,10 @@ class AnalyticTakenView(generics.ListAPIView):
 
 
 class ReportTakenGuardianView(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
-        final_data = {"taken": 0,
-                      "missed": 0}
+        final_data = {"taken": 0, "missed": 0}
 
         cures = TakenMed.objects.filter(patient=self.request.user.guardian.care_about)
         cures_missed = MissedMed.objects.filter(patient=self.request.user.guardian.care_about)

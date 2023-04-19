@@ -38,6 +38,7 @@ class DoctorAdmin(admin.ModelAdmin):
 class DoctorVisitAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(PatienGuardianRelation)
 class PatienGuardianRelationAdmin(admin.ModelAdmin):
     pass

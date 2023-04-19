@@ -1,10 +1,11 @@
 import datetime
 import json
+from django.contrib.auth.models import User
 
-import matplotlib.pyplot as plt
-import numpy as np
+# import matplotlib.pyplot as plt
+# import numpy as np
 from django.shortcuts import get_object_or_404
-from managment.models import Patient
+from managment.models import Patient, Guardian
 from django.utils import timezone
 from rest_framework import generics
 from rest_framework import status
@@ -13,15 +14,23 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from statistic.models import TakenMed, MissedMed
 from statistic.serializers import TakenMedSerializer
+from managment.utils import get_type_of_user
 
 from .models import Cure, TimeTable, Schedule
-from .serializers import CureSerializer, MainScheduleSerializer, MainCureSerializer, \
-    MainTimeTableSerializer, ViewOnlyCureSerializer
+from .serializers import (
+    CureSerializer,
+    MainScheduleSerializer,
+    MainCureSerializer,
+    MainTimeTableSerializer,
+    ViewOnlyCureSerializer,
+)
+from rest_framework.exceptions import ValidationError
 
 
 class CollectStatisticView(generics.ListAPIView):
     """отчет за последни е 10 дней"""
-    # permission_classes = (IsAuthenticated,)
+
+    permission_classes = (IsAuthenticated,)
     queryset = Cure.objects.all()
     serializer_class = CureSerializer
 
@@ -105,8 +114,9 @@ class TakeViewSet(generics.RetrieveAPIView):
                         # raise Exception(time_processed.hour ,today_time.hour)
                         break
 
-            taken_med = TakenMed.objects.create(patient=request.user.patient, med=cure, date=today_time, report=False,
-                                                is_late=flag_is_late)
+            taken_med = TakenMed.objects.create(
+                patient=request.user.patient, med=cure, date=today_time, report=False, is_late=flag_is_late
+            )
             serializer = TakenMedSerializer(taken_med)
         else:
             return Response({"error": "no need to take it"}, status=status.HTTP_400_BAD_REQUEST)
@@ -117,6 +127,48 @@ class CureViewSet(viewsets.ModelViewSet):
     serializer_class = MainCureSerializer
     permission_classes = (IsAuthenticated,)
 
+    def create(self, request):
+        if request.GET.get("ward") is not None:
+            try:
+                id = int(request.GET.get("ward"))
+                ward = Patient.objects.get(id=id)
+                request.user = ward.user
+            except Exception:
+                raise ValidationError({"detail": "404 bad ward"})
+        return super().create(request)
+
+    def update(self, request, *args, **kwargs):
+        if request.GET.get("ward") is not None:
+            try:
+                id = int(request.GET.get("ward"))
+                ward = Patient.objects.get(id=id)
+                request.user = ward.user
+            except Exception:
+                raise ValidationError({"detail": "404 bad ward"})
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        if request.GET.get("ward") is not None:
+            try:
+                id = int(request.GET.get("ward"))
+                ward = Patient.objects.get(id=id)
+                request.user = ward.user
+            except Exception:
+                raise ValidationError({"detail": "404 bad ward"})
+
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return ViewOnlyCureSerializer
@@ -124,7 +176,17 @@ class CureViewSet(viewsets.ModelViewSet):
             return MainCureSerializer
 
     def get_queryset(self):
-        return Cure.objects.filter(patient__user=self.request.user)
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
+            try:
+                ward = int(self.request.query_params['ward'])
+                ward = Patient.objects.get(id=ward)
+
+            except Exception:
+                raise ValidationError({"detail": "404 bad ward"})
+            return Cure.objects.filter(patient=ward)
+        else:
+            return Cure.objects.filter(patient__user=self.request.user)
 
 
 class ScheduleViewSet(viewsets.ModelViewSet):
