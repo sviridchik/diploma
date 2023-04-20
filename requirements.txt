@@ -74,7 +74,7 @@ Pillow==9.1.0
 prometheus-client==0.14.1
 prompt-toolkit==3.0.29
 psutil==5.9.0
-psycopg2-binary==2.9.3
+psycopg2-binary==2.9.6
 ptyprocess==0.7.0
 pure-eval==0.2.2
 pycparser==2.20
@@ -117,5 +117,5 @@ urllib3==1.26.6
 wcwidth==0.2.5
 webencodings==0.5.1
 widgetsnbextension==3.6.0
-python-dotenv-1.0.0
-django-cors-headers-3.14.0
+python-dotenv==1.0.0
+django-cors-headers==3.14.0
