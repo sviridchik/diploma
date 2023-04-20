@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Patient(models.Model):
@@ -76,3 +78,10 @@ class DoctorVisit(models.Model):
     date = models.DateTimeField(verbose_name=_("date_start"))
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+
+
+@receiver(post_save,sender=Patient)
+def add_basic_setting(sender,instance,created,**kwargs):
+    if created:
+        PatientSetting.objects.create(patient = instance,color="white",font=14,city="Minsk",language="RUSSIAN")
+
