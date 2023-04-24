@@ -1,27 +1,26 @@
 from django.contrib.auth.models import User
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
-from .utils import get_type_of_user
-from .models import Patient, PatientSetting, Guardian, Tariff, Tranzaction, Doctor, DoctorVisit
+
+from .models import Doctor, DoctorVisit, Guardian, PatienGuardianRelation, Patient, PatientSetting, Tariff, Tranzaction
 from .serializers import (
+    ChangePasswordSerializer,
+    DoctorSerializer,
+    DoctorVisitSerializer,
+    DoctorVisitViewOnlySerializer,
+    GuardianSerializer,
     PatientSerializer,
     PatientSettingSerializer,
-    GuardianSerializer,
+    ReadOnlyDoctorVisitSerializer,
     TariffSerializer,
     TranzactionSerializer,
-    DoctorVisitSerializer,
-    DoctorSerializer,
     UserSerializer,
-    ReadOnlyDoctorVisitSerializer,
-    ChangePasswordSerializer,
-    DoctorVisitViewOnlySerializer,
 )
-from rest_framework.permissions import IsAuthenticated
-from .models import PatienGuardianRelation
-from rest_framework.exceptions import ValidationError
+from .utils import get_type_of_user
+
 
 class WhoIAmView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
@@ -33,13 +32,13 @@ class WhoIAmView(generics.ListAPIView):
         res = {"type": None, "user": None}
         if len(patient) != 0:
             res["type"] = "patient"
-            res["user"] = PatientSerializer(tuple(patient)[0]).data
+            res["user"] = PatientSerializer(patient.first()).data
         elif len(guardian) != 0:
             res["type"] = "guardian"
-            res["user"] = GuardianSerializer(tuple(guardian)[0]).data
+            res["user"] = GuardianSerializer(guardian.first()).data
         else:
             res["type"] = "nothing"
-            res["user"] = UserSerializer(user).data
+            res["user"] = {'user': UserSerializer(user).data}
 
         return Response(res, status=status.HTTP_200_OK)
 
@@ -119,7 +118,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
                 ward = Patient.objects.get(id=id)
                 request.user = ward.user
             except Exception:
-                raise ValidationError({"detail":"404 bad ward"})
+                raise ValidationError({"detail": "404 bad ward"})
         return super().create(request)
 
     def get_queryset(self):
@@ -129,7 +128,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
                 ward = int(self.request.query_params['ward'])
                 ward = Patient.objects.get(id=ward)
             except Exception:
-                raise ValidationError({"detail":"404 bad ward"})
+                raise ValidationError({"detail": "404 bad ward"})
             return Doctor.objects.filter(patient=ward)
         else:
             return Doctor.objects.filter(patient__user=self.request.user)
@@ -144,7 +143,7 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
         else:
             return DoctorVisitSerializer
 
-# raise ValidationError({"detail": "404 bad ward"})
+    # raise ValidationError({"detail": "404 bad ward"})
 
     def create(self, request):
         if request.GET.get("ward") is not None:
