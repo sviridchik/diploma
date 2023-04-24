@@ -1,28 +1,31 @@
 from django.contrib.auth.models import User
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .utils import get_type_of_user
 from .models import Patient, PatientSetting, Guardian, Tariff, Tranzaction, Doctor, DoctorVisit,GuardianSetting
 from .serializers import (
+    ChangePasswordSerializer,
+    DoctorSerializer,
+    DoctorVisitSerializer,
+    DoctorVisitViewOnlySerializer,
+    GuardianSerializer,
     PatientSerializer,
     PatientSettingSerializer,
-    GuardianSerializer,
+    ReadOnlyDoctorVisitSerializer,
     TariffSerializer,
     TranzactionSerializer,
-    DoctorVisitSerializer,
-    DoctorSerializer,
     UserSerializer,
     ReadOnlyDoctorVisitSerializer,
     ChangePasswordSerializer,
     DoctorVisitViewOnlySerializer,
 GuardianSettingSerializer
 )
-from rest_framework.permissions import IsAuthenticated
-from .models import PatienGuardianRelation
-from rest_framework.exceptions import ValidationError
+from .utils import get_type_of_user
+
 
 
 class WhoIAmView(generics.ListAPIView):
@@ -145,7 +148,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
                 ward = Patient.objects.get(id=id)
                 request.user = ward.user
             except Exception:
-                raise ValidationError({"detail":"404 bad ward"})
+                raise ValidationError({"detail": "404 bad ward"})
         return super().create(request)
 
     def get_queryset(self):
@@ -155,7 +158,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
                 ward = int(self.request.query_params['ward'])
                 ward = Patient.objects.get(id=ward)
             except Exception:
-                raise ValidationError({"detail":"404 bad ward"})
+                raise ValidationError({"detail": "404 bad ward"})
             return Doctor.objects.filter(patient=ward)
         else:
             return Doctor.objects.filter(patient__user=self.request.user)
