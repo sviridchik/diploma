@@ -101,7 +101,7 @@ class AnalyticTakenGuardianView(generics.ListAPIView):
 
 
 class AnalyticTakenView(generics.ListAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         final_data = {"taken": 0, "missed": 0}
@@ -123,7 +123,7 @@ class AnalyticTakenView(generics.ListAPIView):
 
 
 class ReportTakenGuardianView(generics.ListAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         final_data = {"taken": 0, "missed": 0}

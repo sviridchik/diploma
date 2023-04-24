@@ -13,7 +13,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from statistic.models import TakenMed, MissedMed
-from statistic.serializers import TakenMedSerializer
+from statistic.serializers import TakenMedSerializer,MissedMedSerializer
 from managment.utils import get_type_of_user
 
 from .models import Cure, TimeTable, Schedule
@@ -88,7 +88,7 @@ class CollectStatisticView(generics.ListAPIView):
 
 
 class TakeViewSet(generics.RetrieveAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk, *args, **kwargs):
         queryset = Cure.objects.filter(patient__user=request.user)
@@ -104,20 +104,35 @@ class TakeViewSet(generics.RetrieveAPIView):
             for t in times:
                 time_processed = datetime.datetime.strptime(t["time"], '%H:%M:%S')
                 if not cure.strict_status:
+
                     if time_processed.hour == today_time.hour:
+
                         flag_is_late = False
                         # raise Exception(time_processed.hour ,today_time.hour)
                         break
+                    else:
+
+                        flag_is_late = True
+                        break
+
                 else:
                     if time_processed.hour == today_time.hour and time_processed.minute == today_time.minute:
                         flag_is_late = False
                         # raise Exception(time_processed.hour ,today_time.hour)
                         break
-
-            taken_med = TakenMed.objects.create(
-                patient=request.user.patient, med=cure, date=today_time, report=False, is_late=flag_is_late
-            )
-            serializer = TakenMedSerializer(taken_med)
+                    else:
+                        flag_is_late = True
+                        break
+            if not flag_is_late:
+                taken_med = TakenMed.objects.create(
+                    patient=request.user.patient, med=cure, date=today_time, report=False, is_late=flag_is_late
+                )
+                serializer = TakenMedSerializer(taken_med)
+            else:
+                missed_med = MissedMed.objects.create(
+                    patient=request.user.patient, med=cure, date=today_time, is_informed=False
+                )
+                serializer = MissedMedSerializer(missed_med)
         else:
             return Response({"error": "no need to take it"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
@@ -125,7 +140,7 @@ class TakeViewSet(generics.RetrieveAPIView):
 
 class CureViewSet(viewsets.ModelViewSet):
     serializer_class = MainCureSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def create(self, request):
         if request.GET.get("ward") is not None:
@@ -192,10 +207,10 @@ class CureViewSet(viewsets.ModelViewSet):
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = MainScheduleSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
 
 class TimeTableViewSet(viewsets.ModelViewSet):
     queryset = TimeTable.objects.all()
     serializer_class = MainTimeTableSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
