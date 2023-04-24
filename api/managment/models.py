@@ -26,6 +26,11 @@ class Guardian(models.Model):
 
     def __str__(self):
         return self.first_name + " " + self.last_name
+class GuardianSetting(models.Model):
+    guardian = models.OneToOneField(Guardian, on_delete=models.CASCADE)
+    language = models.CharField(verbose_name=_("language"), max_length=255, choices=LANGUAGE_CHOICES)
+    theme = models.CharField(verbose_name=_("color"), max_length=255, choices=COLORS_CHOICES, default="white")
+
 
 
 class PatienGuardianRelation(models.Model):
@@ -84,4 +89,9 @@ class DoctorVisit(models.Model):
 def add_basic_setting(sender,instance,created,**kwargs):
     if created:
         PatientSetting.objects.create(patient = instance,color="white",font=14,city="Minsk",language="RUSSIAN")
+
+@receiver(post_save,sender=Guardian)
+def add_basic_setting(sender,instance,created,**kwargs):
+    if created:
+        GuardianSetting.objects.create(guardian = instance,language="RUSSIAN",theme="white")
 

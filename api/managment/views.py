@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .utils import get_type_of_user
-from .models import Patient, PatientSetting, Guardian, Tariff, Tranzaction, Doctor, DoctorVisit
+from .models import Patient, PatientSetting, Guardian, Tariff, Tranzaction, Doctor, DoctorVisit,GuardianSetting
 from .serializers import (
     PatientSerializer,
     PatientSettingSerializer,
@@ -18,6 +18,7 @@ from .serializers import (
     ReadOnlyDoctorVisitSerializer,
     ChangePasswordSerializer,
     DoctorVisitViewOnlySerializer,
+GuardianSettingSerializer
 )
 from rest_framework.permissions import IsAuthenticated
 from .models import PatienGuardianRelation
@@ -80,7 +81,31 @@ class PatientSettingViewSet(viewsets.ModelViewSet):
     queryset = PatientSetting.objects.all()
     serializer_class = PatientSettingSerializer
     permission_classes = [IsAuthenticated]
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        return queryset.get(patient=self.request.user.patient)
 
+    def get_queryset(self):
+        user: User = self.request.user
+        if user.is_superuser:
+            return PatientSetting.objects.all()
+        else:
+            return PatientSetting.objects.filter(patient=user.patient)
+
+class GuardianSettingViewSet(viewsets.ModelViewSet):
+    queryset = GuardianSetting.objects.all()
+    serializer_class = GuardianSettingSerializer
+    permission_classes = [IsAuthenticated]
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        return queryset.get(guardian=self.request.user.guardian)
+
+    def get_queryset(self):
+        user: User = self.request.user
+        if user.is_superuser:
+            return GuardianSetting.objects.all()
+        else:
+            return GuardianSetting.objects.filter(guardian=user.guardian)
 
 class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = GuardianSerializer

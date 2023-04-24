@@ -1,9 +1,7 @@
 COLORS_CHOICES = [
     ('w', 'white'),
-    ('b', 'blue'),
-    ('r', 'red'),
-    ('o', 'orange'),
-    ('g', 'green'),
+    ('b', 'black'),
+
 ]
 
 LANGUAGE_CHOICES = [

@@ -88,7 +88,7 @@ class CollectStatisticView(generics.ListAPIView):
 
 
 class TakeViewSet(generics.RetrieveAPIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk, *args, **kwargs):
         queryset = Cure.objects.filter(patient__user=request.user)
@@ -125,7 +125,7 @@ class TakeViewSet(generics.RetrieveAPIView):
 
 class CureViewSet(viewsets.ModelViewSet):
     serializer_class = MainCureSerializer
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def create(self, request):
         if request.GET.get("ward") is not None:
@@ -192,10 +192,10 @@ class CureViewSet(viewsets.ModelViewSet):
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = MainScheduleSerializer
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
 
 class TimeTableViewSet(viewsets.ModelViewSet):
     queryset = TimeTable.objects.all()
     serializer_class = MainTimeTableSerializer
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
