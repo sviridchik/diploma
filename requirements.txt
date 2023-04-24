@@ -26,7 +26,6 @@ django-rest-swagger==2.2.0
 django-templated-mail==1.1.1
 djangorestframework==3.12.4
 djangorestframework-simplejwt==4.7.2
-djoser==2.1.0
 entrypoints==0.4
 executing==0.8.3
 factory-boy==3.2.0
@@ -118,5 +117,5 @@ wcwidth==0.2.5
 webencodings==0.5.1
 widgetsnbextension==3.6.0
 python-dotenv==1.0.0
-djoser==2.2.0
+djoser==2.1.0
 django-cors-headers==3.14.0
