@@ -29,16 +29,14 @@ class WhoIAmView(generics.ListAPIView):
         user = request.user
         patient = Patient.objects.filter(user=user)
         guardian = Guardian.objects.filter(user=user)
-        res = {"type": None, "user": None}
-        if len(patient) != 0:
-            res["type"] = "patient"
-            res["user"] = PatientSerializer(patient.first()).data
-        elif len(guardian) != 0:
-            res["type"] = "guardian"
-            res["user"] = GuardianSerializer(guardian.first()).data
-        else:
-            res["type"] = "nothing"
-            res["user"] = {'user': UserSerializer(user).data}
+        res = dict()
+        if patient.exists():
+            res["patient"] = PatientSerializer(patient.first()).data
+
+        if guardian.exists():
+            res["guardian"] = GuardianSerializer(guardian.first()).data
+
+        res["user"] = UserSerializer(user).data
 
         return Response(res, status=status.HTTP_200_OK)
 
