@@ -38,6 +38,8 @@ class WhoIAmView(generics.ListAPIView):
 
         res["user"] = UserSerializer(user).data
 
+        res["bought"] = True
+
         return Response(res, status=status.HTTP_200_OK)
 
 
