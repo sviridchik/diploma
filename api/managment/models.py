@@ -33,7 +33,7 @@ class GuardianSetting(models.Model):
 
 
 
-class PatienGuardianRelation(models.Model):
+class PatientGuardianRelation(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     guardian = models.ForeignKey(Guardian, on_delete=models.CASCADE)
     banned = models.BooleanField(

@@ -4,7 +4,9 @@ from django.core.mail import send_mail
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction, GuardianSetting
+from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction, GuardianSetting,PatientGuardianRelation
+
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -158,3 +160,15 @@ class ChangePasswordSerializer(serializers.Serializer):
         instance.set_password(validated_data['password_new'])
         instance.save()
         return instance
+
+class BuySerializer(serializers.Serializer):
+    code = serializers.IntegerField(min_value=100000)
+    should_send_report = serializers.BooleanField()
+    relationship = serializers.CharField(max_length=128, min_length=8)
+
+class PatientGuardianRelationSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer()
+    guardian = GuardianSerializer()
+    class Meta:
+        model = PatientGuardianRelation
+        fields = "__all__"

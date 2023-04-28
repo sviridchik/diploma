@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .utils import get_type_of_user
-from .models import Patient, PatientSetting, Guardian, Tariff, Tranzaction, Doctor, DoctorVisit,GuardianSetting
+from .models import Patient, PatientSetting, Guardian, Tariff, Tranzaction, Doctor, DoctorVisit,GuardianSetting,PatientGuardianRelation
 from .serializers import (
     ChangePasswordSerializer,
     DoctorSerializer,
@@ -22,14 +22,17 @@ from .serializers import (
     ReadOnlyDoctorVisitSerializer,
     ChangePasswordSerializer,
     DoctorVisitViewOnlySerializer,
-GuardianSettingSerializer
+GuardianSettingSerializer,
+BuySerializer,
+PatientGuardianRelationSerializer
 )
 from .utils import get_type_of_user
+from django.views import View
 
 
 
 class WhoIAmView(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         user = request.user
@@ -66,7 +69,7 @@ class WardViewSet(viewsets.ModelViewSet):
 
 class PatientViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = PatientSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
@@ -112,7 +115,7 @@ class GuardianSettingViewSet(viewsets.ModelViewSet):
 
 class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = GuardianSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
@@ -227,3 +230,25 @@ def change_password_view(request):
         return Response(status=status.HTTP_200_OK)
     else:
         return Response({'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+# От тебя создать эндпоинт, который будет принимать 6-ти значный код, should_send_report и relationship.
+
+
+class ConnectionViewSet(viewsets.ModelViewSet):
+    serializer_class = PatientGuardianRelationSerializer
+    # permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        patient_id = request.data['patient_id']
+        patient = Patient.objects.get(id=patient_id)
+        guardian = Guardian.objects.get(user=request.user)
+        should_send_report = request.data['should_send_report']
+        relationship = request.data['relationship']
+        count_patient_relations_of_guardians = len(PatientGuardianRelation.objects.filter(guardian=guardian))
+        count_guardians_of_patient_relations = len(PatientGuardianRelation.objects.filter(patient=patient))
+        if count_guardians_of_patient_relations<3 and count_patient_relations_of_guardians<3 and len(PatientGuardianRelation.objects.filter(patient=patient,guardian=guardian)) == 0:
+            PatientGuardianRelation.objects.create(patient=patient,guardian=guardian,should_send_report=should_send_report,relationship=relationship)
+        else:
+            return Response({'detail':"too much connections"},status=status.HTTP_400_BAD_REQUEST)
+        return Response({}, status=status.HTTP_201_CREATED)
+
