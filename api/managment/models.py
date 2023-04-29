@@ -7,6 +7,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
+class Buyer(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    token = models.CharField(max_length=512)
+
+
+
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(_('first name'), max_length=150, blank=True)
@@ -19,6 +26,7 @@ class Patient(models.Model):
 
 
 class Guardian(models.Model):
+    age = models.PositiveIntegerField(verbose_name=_('age'), validators=[MaxValueValidator(150)])
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(_('first name'), max_length=150, blank=True)
     last_name = models.CharField(_('last name'), max_length=150, blank=True)

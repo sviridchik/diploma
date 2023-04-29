@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .utils import get_type_of_user
-from .models import Patient, PatientSetting, Guardian, Tariff, Tranzaction, Doctor, DoctorVisit,GuardianSetting,PatientGuardianRelation
+from .models import Patient, PatientSetting, Guardian, Tariff, Tranzaction, Doctor, DoctorVisit,GuardianSetting,PatientGuardianRelation,Buyer
 from .serializers import (
     ChangePasswordSerializer,
     DoctorSerializer,
@@ -48,7 +48,10 @@ class WhoIAmView(generics.ListAPIView):
         else:
             res["type"] = "nothing"
             res["user"] = UserSerializer(user).data
-
+        if len(Buyer.objects.filter(user=user))!=0:
+            res["bought"] = True
+        else:
+            res["bought"] = False
         return Response(res, status=status.HTTP_200_OK)
 
 
@@ -69,7 +72,7 @@ class WardViewSet(viewsets.ModelViewSet):
 
 class PatientViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = PatientSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
@@ -115,7 +118,7 @@ class GuardianSettingViewSet(viewsets.ModelViewSet):
 
 class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = GuardianSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
@@ -236,7 +239,7 @@ def change_password_view(request):
 
 class ConnectionViewSet(viewsets.ModelViewSet):
     serializer_class = PatientGuardianRelationSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
         patient_id = request.data['patient_id']
@@ -250,5 +253,15 @@ class ConnectionViewSet(viewsets.ModelViewSet):
             PatientGuardianRelation.objects.create(patient=patient,guardian=guardian,should_send_report=should_send_report,relationship=relationship)
         else:
             return Response({'detail':"too much connections"},status=status.HTTP_400_BAD_REQUEST)
+        return Response({}, status=status.HTTP_201_CREATED)
+
+class BuyViewSet(viewsets.ModelViewSet):
+    serializer_class = BuySerializer
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        token = request.data['token']
+        Buyer.objects.create(user=user,token=token)
         return Response({}, status=status.HTTP_201_CREATED)
 

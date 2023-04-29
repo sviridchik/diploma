@@ -12,7 +12,8 @@ from .views import (
     change_password_view,
     WardViewSet,
 GuardianSettingViewSet,
-ConnectionViewSet
+ConnectionViewSet,
+BuyViewSet
 )
 from rest_framework import routers
 
@@ -33,6 +34,9 @@ router.register('connect', ConnectionViewSet, basename='connect')
 urlpatterns = [
     path('whoiam/', WhoIAmView.as_view()),
     path('change-password/', change_password_view),
-    # path("buy/", BuyViewSet.as_view()),
+    path("buy/", BuyViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})),
 ]
 urlpatterns += router.urls

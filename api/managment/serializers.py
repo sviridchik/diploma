@@ -4,10 +4,7 @@ from django.core.mail import send_mail
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction, GuardianSetting,PatientGuardianRelation
-
-
-
+from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction, GuardianSetting,PatientGuardianRelation,Buyer
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,16 +13,12 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
 
-#     def create(self, validated_data):
-#         user = User(
-#             email=validated_data['email'],
-#             username=validated_data['username']
-#         )
-#         user.set_password(validated_data['password'])
-#         user.save()
-#         return user
+class BuyerSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
 
-
+    class Meta:
+        model = Buyer
+        fields = "__all__"
 class PatientSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 
