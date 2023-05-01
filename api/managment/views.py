@@ -4,8 +4,20 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from .models import Doctor, DoctorVisit, Guardian, PatienGuardianRelation, Patient, PatientSetting, Tariff, Tranzaction
+from rest_framework import status
+from .utils import get_type_of_user
+from .models import (
+    Patient,
+    PatientSetting,
+    Guardian,
+    Tariff,
+    Tranzaction,
+    Doctor,
+    DoctorVisit,
+    GuardianSetting,
+    PatientGuardianRelation,
+    Buyer,
+)
 from .serializers import (
     ChangePasswordSerializer,
     DoctorSerializer,
@@ -18,8 +30,15 @@ from .serializers import (
     TariffSerializer,
     TranzactionSerializer,
     UserSerializer,
+    ReadOnlyDoctorVisitSerializer,
+    ChangePasswordSerializer,
+    DoctorVisitViewOnlySerializer,
+    GuardianSettingSerializer,
+    PatientGuardianRelationSerializer,
 )
-from .utils import get_type_of_user
+from .utils import get_type_of_user, str_to_int
+from django.views import View
+from rest_framework.authtoken.models import Token
 
 
 class WhoIAmView(generics.ListAPIView):
@@ -35,7 +54,7 @@ class WhoIAmView(generics.ListAPIView):
 
         if guardians.exists():
             guardian = guardians.first()
-            res["guardian"] = GuardianSerializer().data
+            res["guardian"] = GuardianSerializer(guardian).data
             connected_patients = Patient.objects.filter(
                 id__in=PatientGuardianRelation.objects.filter(guardian=guardian).values('patient')
             )
@@ -44,6 +63,11 @@ class WhoIAmView(generics.ListAPIView):
         res["user"] = UserSerializer(user).data
 
         res["bought"] = True
+
+        if len(Buyer.objects.filter(user=user)) != 0:
+            res["bought"] = True
+        else:
+            res["bought"] = False
 
         return Response(res, status=status.HTTP_200_OK)
 
@@ -57,8 +81,13 @@ class WardViewSet(viewsets.ModelViewSet):
         return queryset.get(user=self.request.user)
 
     def get_queryset(self):
-        guardian = Guardian.objects.get(user=self.request.user)
-        ward_list = PatienGuardianRelation.objects.filter(guardian=guardian)
+        try:
+            guardian = Guardian.objects.get(user=self.request.user)
+            ward_list = PatienGuardianRelation.objects.filter(guardian=guardian)
+        except User.DoesNotExist:
+            raise ValidationError({"detail": "user doesn't exist"})
+        except Guardian.DoesNotExist:
+            raise ValidationError({"detail": "guardian doesn't exist"})
         ward_list = [ward.patient for ward in ward_list]
         return ward_list
 
@@ -84,6 +113,40 @@ class PatientSettingViewSet(viewsets.ModelViewSet):
     serializer_class = PatientSettingSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        return queryset.get(patient=self.request.user.patient)
+
+    def get_queryset(self):
+        user: User = self.request.user
+        try:
+            if user.is_superuser:
+                return PatientSetting.objects.all()
+            else:
+                return PatientSetting.objects.filter(patient=user.patient)
+        except Patient.DoesNotExist:
+            raise ValidationError({"detail": "patient doesn't exist"})
+
+
+class GuardianSettingViewSet(viewsets.ModelViewSet):
+    queryset = GuardianSetting.objects.all()
+    serializer_class = GuardianSettingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        return queryset.get(guardian=self.request.user.guardian)
+
+    def get_queryset(self):
+        user: User = self.request.user
+        try:
+            if user.is_superuser:
+                return GuardianSetting.objects.all()
+            else:
+                return GuardianSetting.objects.filter(guardian=user.guardian)
+        except Guardian.DoesNotExist:
+            raise ValidationError({"detail": "guardian doesn't exist"})
+
 
 class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = GuardianSerializer
@@ -95,10 +158,13 @@ class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateMo
 
     def get_queryset(self):
         user: User = self.request.user
-        if user.is_superuser:
-            return Guardian.objects.all()
-        else:
-            return Guardian.objects.filter(user=user)
+        try:
+            if user.is_superuser:
+                return Guardian.objects.all()
+            else:
+                return Guardian.objects.filter(user=user)
+        except User.DoesNotExist:
+            raise ValidationError({"detail": "user doesn't exist"})
 
 
 class TariffViewSet(viewsets.ModelViewSet):
@@ -202,3 +268,57 @@ def change_password_view(request):
         return Response(status=status.HTTP_200_OK)
     else:
         return Response({'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# От тебя создать эндпоинт, который будет принимать 6-ти значный код, should_send_report и relationship.
+
+
+class ConnectionViewSet(viewsets.ModelViewSet):
+    serializer_class = PatientGuardianRelationSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        code = request.data['code']
+        patient_id = request.data['patient_id']
+        patient = Patient.objects.get(id=patient_id)
+        token = Token.objects.get(user=patient.user)
+        code_valid = str_to_int(str(token))
+        if code != code_valid:
+            return Response({'detail': "invalid code"}, status=status.HTTP_400_BAD_REQUEST)
+        guardian = Guardian.objects.get(user=request.user)
+        should_send_report = request.data['should_send_report']
+        relationship = request.data['relationship']
+        count_patient_relations_of_guardians = len(PatientGuardianRelation.objects.filter(guardian=guardian))
+        count_guardians_of_patient_relations = len(PatientGuardianRelation.objects.filter(patient=patient))
+        if (
+            count_guardians_of_patient_relations < 3
+            and count_patient_relations_of_guardians < 3
+            and len(PatientGuardianRelation.objects.filter(patient=patient, guardian=guardian)) == 0
+        ):
+            PatientGuardianRelation.objects.create(
+                patient=patient, guardian=guardian, should_send_report=should_send_report, relationship=relationship
+            )
+        else:
+            return Response({'detail': "too much connections"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({}, status=status.HTTP_201_CREATED)
+
+
+class BuyViewSet(viewsets.ModelViewSet):
+    serializer_class = PatientSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        token = request.data['token']
+        Buyer.objects.create(user=user, token=token)
+        return Response({}, status=status.HTTP_201_CREATED)
+
+
+class CodeGenerateViewSet(viewsets.ModelViewSet):
+    serializer_class = PatientSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+        token = Token.objects.get(user=request.user)
+        code = str_to_int(str(token))
+        return Response({"code": code})

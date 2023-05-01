@@ -7,6 +7,9 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from rest_framework.response import Response
+from managment.utils import get_type_of_user
+from managment.models import Patient, Guardian
+from rest_framework.exceptions import ValidationError
 
 # import numpy as np
 from .models import Devise, Logs, MissedMed, TakenMed, Achievement, Label
@@ -101,8 +104,8 @@ class AnalyticTakenGuardianView(generics.ListAPIView):
 
 
 class AnalyticTakenView(generics.ListAPIView):
-    # permission_classes = (IsAuthenticated,)
-
+    permission_classes = (IsAuthenticated,)
+    #
     def list(self, request, *args, **kwargs):
         final_data = {"taken": 0, "missed": 0}
 
@@ -123,13 +126,23 @@ class AnalyticTakenView(generics.ListAPIView):
 
 
 class ReportTakenGuardianView(generics.ListAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         final_data = {"taken": 0, "missed": 0}
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
+            try:
+                ward = int(self.request.query_params['ward'])
+                patient = Patient.objects.get(id=ward)
+            except Exception:
+                raise ValidationError({"detail": "404 bad ward"})
+        elif type_user=="patient":
+            patient = Patient.objects.get(user=self.request.user)
 
-        cures = TakenMed.objects.filter(patient=self.request.user.guardian.care_about)
-        cures_missed = MissedMed.objects.filter(patient=self.request.user.guardian.care_about)
+        #     ==================
+        cures = TakenMed.objects.filter(patient=patient)
+        cures_missed = MissedMed.objects.filter(patient=patient)
         date_data = request.query_params.get("date_data")
         if date_data:
             date_data = datetime.datetime.fromisoformat(date_data)

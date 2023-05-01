@@ -4,8 +4,7 @@ from django.core.mail import send_mail
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction
-
+from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction, GuardianSetting,PatientGuardianRelation,Buyer
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,16 +13,12 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
 
-#     def create(self, validated_data):
-#         user = User(
-#             email=validated_data['email'],
-#             username=validated_data['username']
-#         )
-#         user.set_password(validated_data['password'])
-#         user.save()
-#         return user
+class BuyerSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
 
-
+    class Meta:
+        model = Buyer
+        fields = "__all__"
 class PatientSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 
@@ -32,6 +27,7 @@ class PatientSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
+        # raise Exception(98)
         validated_data['user'] = self.context['request'].user
         patient = super().create(validated_data)
         return patient
@@ -71,7 +67,10 @@ class PatientSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientSetting
         fields = "__all__"
-
+class GuardianSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GuardianSetting
+        fields = "__all__"
 
 class TariffSerializer(serializers.ModelSerializer):
     class Meta:
@@ -154,3 +153,15 @@ class ChangePasswordSerializer(serializers.Serializer):
         instance.set_password(validated_data['password_new'])
         instance.save()
         return instance
+
+# class BuySerializer(serializers.Serializer):
+#     code = serializers.IntegerField(min_value=100000)
+#     should_send_report = serializers.BooleanField()
+#     relationship = serializers.CharField(max_length=128, min_length=8)
+
+class PatientGuardianRelationSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer()
+    guardian = GuardianSerializer()
+    class Meta:
+        model = PatientGuardianRelation
+        fields = "__all__"
