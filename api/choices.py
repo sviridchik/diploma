@@ -1,12 +1,12 @@
 COLORS_CHOICES = [
-    ('w', 'white'),
-    ('b', 'black'),
+    ('white', 'white'),
+    ('black', 'black'),
 
 ]
 
 LANGUAGE_CHOICES = [
-    ('RU', 'RUSSIAN'),
-    ('EN', 'ENGLISH'),
+    ('RUSSIAN', 'RUSSIAN'),
+    ('ENGLISH', 'ENGLISH'),
 ]
 
 TYPE_CHOICES = [

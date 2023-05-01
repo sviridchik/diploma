@@ -32,7 +32,7 @@ from django.views import View
 
 
 class WhoIAmView(generics.ListAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         user = request.user
@@ -64,8 +64,13 @@ class WardViewSet(viewsets.ModelViewSet):
         return queryset.get(user=self.request.user)
 
     def get_queryset(self):
-        guardian = Guardian.objects.get(user=self.request.user)
-        ward_list = PatienGuardianRelation.objects.filter(guardian=guardian)
+        try:
+            guardian = Guardian.objects.get(user=self.request.user)
+            ward_list = PatienGuardianRelation.objects.filter(guardian=guardian)
+        except User.DoesNotExist:
+            raise ValidationError({"detail": "user doesn't exist"})
+        except Guardian.DoesNotExist:
+            raise ValidationError({"detail": "guardian doesn't exist"})
         ward_list = [ward.patient for ward in ward_list]
         return ward_list
 
@@ -96,10 +101,13 @@ class PatientSettingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user: User = self.request.user
-        if user.is_superuser:
-            return PatientSetting.objects.all()
-        else:
-            return PatientSetting.objects.filter(patient=user.patient)
+        try:
+            if user.is_superuser:
+                return PatientSetting.objects.all()
+            else:
+                return PatientSetting.objects.filter(patient=user.patient)
+        except Patient.DoesNotExist:
+            raise ValidationError({"detail": "patient doesn't exist"})
 
 class GuardianSettingViewSet(viewsets.ModelViewSet):
     queryset = GuardianSetting.objects.all()
@@ -111,11 +119,13 @@ class GuardianSettingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user: User = self.request.user
-        if user.is_superuser:
-            return GuardianSetting.objects.all()
-        else:
-            return GuardianSetting.objects.filter(guardian=user.guardian)
-
+        try:
+            if user.is_superuser:
+                return GuardianSetting.objects.all()
+            else:
+                return GuardianSetting.objects.filter(guardian=user.guardian)
+        except Guardian.DoesNotExist:
+            raise ValidationError({"detail": "guardian doesn't exist"})
 class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = GuardianSerializer
     permission_classes = [IsAuthenticated]
@@ -126,11 +136,13 @@ class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateMo
 
     def get_queryset(self):
         user: User = self.request.user
-        if user.is_superuser:
-            return Guardian.objects.all()
-        else:
-            return Guardian.objects.filter(user=user)
-
+        try:
+            if user.is_superuser:
+                return Guardian.objects.all()
+            else:
+                return Guardian.objects.filter(user=user)
+        except User.DoesNotExist:
+            raise ValidationError({"detail": "user doesn't exist"})
 
 class TariffViewSet(viewsets.ModelViewSet):
     queryset = Tariff.objects.all()
