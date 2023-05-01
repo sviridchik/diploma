@@ -26,9 +26,9 @@ GuardianSettingSerializer,
 BuySerializer,
 PatientGuardianRelationSerializer
 )
-from .utils import get_type_of_user
+from .utils import get_type_of_user, str_to_int
 from django.views import View
-
+from rest_framework.authtoken.models import Token
 
 
 class WhoIAmView(generics.ListAPIView):
@@ -52,6 +52,7 @@ class WhoIAmView(generics.ListAPIView):
             res["bought"] = True
         else:
             res["bought"] = False
+
         return Response(res, status=status.HTTP_200_OK)
 
 
@@ -254,8 +255,13 @@ class ConnectionViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
+        code =  request.data['code']
         patient_id = request.data['patient_id']
         patient = Patient.objects.get(id=patient_id)
+        token = Token.objects.get(user=patient.user)
+        code_valid = str_to_int(str(token))
+        if code!=code_valid:
+            return Response({'detail':"invalid code"},status=status.HTTP_400_BAD_REQUEST)
         guardian = Guardian.objects.get(user=request.user)
         should_send_report = request.data['should_send_report']
         relationship = request.data['relationship']
@@ -276,4 +282,12 @@ class BuyViewSet(viewsets.ModelViewSet):
         token = request.data['token']
         Buyer.objects.create(user=user,token=token)
         return Response({}, status=status.HTTP_201_CREATED)
+class CodeGenerateViewSet(viewsets.ModelViewSet):
+    serializer_class = BuySerializer
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+        token = Token.objects.get(user=request.user)
+        code = str_to_int(str(token))
+        return Response({"code":code})
 

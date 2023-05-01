@@ -13,7 +13,8 @@ from .views import (
     WardViewSet,
 GuardianSettingViewSet,
 ConnectionViewSet,
-BuyViewSet
+BuyViewSet,
+CodeGenerateViewSet
 )
 from rest_framework import routers
 
@@ -29,6 +30,7 @@ router.register('tranzaction', TranzactionViewSet, basename='tranzaction')
 router.register('doctor', DoctorViewSet, basename='doctor')
 router.register('doctorvisit', DoctorVisitViewSet, basename='doctorvisit')
 router.register('connect', ConnectionViewSet, basename='connect')
+router.register('code', CodeGenerateViewSet, basename='code')
 
 
 urlpatterns = [
@@ -38,5 +40,6 @@ urlpatterns = [
     'get': 'list',
     'post': 'create'
 })),
+
 ]
 urlpatterns += router.urls
