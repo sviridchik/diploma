@@ -54,7 +54,7 @@ class WhoIAmView(generics.ListAPIView):
 
         if guardians.exists():
             guardian = guardians.first()
-            res["guardian"] = GuardianSerializer().data
+            res["guardian"] = GuardianSerializer(guardian).data
             connected_patients = Patient.objects.filter(
                 id__in=PatientGuardianRelation.objects.filter(guardian=guardian).values('patient')
             )
