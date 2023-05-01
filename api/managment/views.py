@@ -52,6 +52,7 @@ class WhoIAmView(generics.ListAPIView):
             res["bought"] = True
         else:
             res["bought"] = False
+
         return Response(res, status=status.HTTP_200_OK)
 
 
