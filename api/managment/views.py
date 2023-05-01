@@ -1,22 +1,24 @@
+from time import sleep
 from django.contrib.auth.models import User
+from django.views import View
 from rest_framework import generics, status, viewsets
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
-from .utils import get_type_of_user
+
 from .models import (
-    Patient,
-    PatientSetting,
-    Guardian,
-    Tariff,
-    Tranzaction,
+    Buyer,
     Doctor,
     DoctorVisit,
+    Guardian,
     GuardianSetting,
+    Patient,
     PatientGuardianRelation,
-    Buyer,
+    PatientSetting,
+    Tariff,
+    Tranzaction,
 )
 from .serializers import (
     ChangePasswordSerializer,
@@ -24,21 +26,16 @@ from .serializers import (
     DoctorVisitSerializer,
     DoctorVisitViewOnlySerializer,
     GuardianSerializer,
+    GuardianSettingSerializer,
+    PatientGuardianRelationSerializer,
     PatientSerializer,
     PatientSettingSerializer,
     ReadOnlyDoctorVisitSerializer,
     TariffSerializer,
     TranzactionSerializer,
     UserSerializer,
-    ReadOnlyDoctorVisitSerializer,
-    ChangePasswordSerializer,
-    DoctorVisitViewOnlySerializer,
-    GuardianSettingSerializer,
-    PatientGuardianRelationSerializer,
 )
 from .utils import get_type_of_user, str_to_int
-from django.views import View
-from rest_framework.authtoken.models import Token
 
 
 class WhoIAmView(generics.ListAPIView):
@@ -310,8 +307,12 @@ class BuyViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         user = request.user
         token = request.data['token']
-        Buyer.objects.create(user=user, token=token)
-        return Response({}, status=status.HTTP_201_CREATED)
+        sleep(2)
+        _, created = Buyer.objects.get_or_create(user=user, token=token)
+        if created:
+            return Response({}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"detail": 'Already bought'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CodeGenerateViewSet(viewsets.ModelViewSet):
