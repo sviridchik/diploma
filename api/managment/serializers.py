@@ -154,10 +154,10 @@ class ChangePasswordSerializer(serializers.Serializer):
         instance.save()
         return instance
 
-class BuySerializer(serializers.Serializer):
-    code = serializers.IntegerField(min_value=100000)
-    should_send_report = serializers.BooleanField()
-    relationship = serializers.CharField(max_length=128, min_length=8)
+# class BuySerializer(serializers.Serializer):
+#     code = serializers.IntegerField(min_value=100000)
+#     should_send_report = serializers.BooleanField()
+#     relationship = serializers.CharField(max_length=128, min_length=8)
 
 class PatientGuardianRelationSerializer(serializers.ModelSerializer):
     patient = PatientSerializer()

@@ -23,7 +23,6 @@ from .serializers import (
     ChangePasswordSerializer,
     DoctorVisitViewOnlySerializer,
 GuardianSettingSerializer,
-BuySerializer,
 PatientGuardianRelationSerializer
 )
 from .utils import get_type_of_user, str_to_int
@@ -35,25 +34,35 @@ class WhoIAmView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
-        user = request.user
-        patient = Patient.objects.filter(user=user)
-        guardian = Guardian.objects.filter(user=user)
-        res = {"type": None, "user": None}
-        if len(patient) != 0:
-            res["type"] = "patient"
-            res["user"] = PatientSerializer(tuple(patient)[0]).data
-        elif len(guardian) != 0:
-            res["type"] = "guardian"
-            res["user"] = GuardianSerializer(tuple(guardian)[0]).data
-        else:
-            res["type"] = "nothing"
-            res["user"] = UserSerializer(user).data
-        if len(Buyer.objects.filter(user=user))!=0:
-            res["bought"] = True
-        else:
-            res["bought"] = False
+        class WhoIAmView(generics.ListAPIView):
+            permission_classes = (IsAuthenticated,)
 
-        return Response(res, status=status.HTTP_200_OK)
+            def list(self, request, *args, **kwargs):
+                user = request.user
+                patients = Patient.objects.filter(user=user)
+                guardians = Guardian.objects.filter(user=user)
+                res = dict()
+                if patients.exists():
+                    res["patient"] = PatientSerializer(patients.first()).data
+
+                if guardians.exists():
+                    guardian = guardians.first()
+                    res["guardian"] = GuardianSerializer().data
+                    connected_patients = Patient.objects.filter(
+                        id__in=PatientGuardianRelation.objects.filter(guardian=guardian).values('patient')
+                    )
+                    res["guardian"]['connected_patients'] = PatientSerializer(connected_patients, many=True).data
+
+                res["user"] = UserSerializer(user).data
+
+                res["bought"] = True
+
+                if len(Buyer.objects.filter(user=user))!=0:
+                    res["bought"] = True
+                else:
+                    res["bought"] = False
+
+                return Response(res, status=status.HTTP_200_OK)
 
 
 class WardViewSet(viewsets.ModelViewSet):
@@ -274,7 +283,7 @@ class ConnectionViewSet(viewsets.ModelViewSet):
         return Response({}, status=status.HTTP_201_CREATED)
 
 class BuyViewSet(viewsets.ModelViewSet):
-    serializer_class = BuySerializer
+    serializer_class = PatientSerializer
     permission_classes = (IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
@@ -283,7 +292,7 @@ class BuyViewSet(viewsets.ModelViewSet):
         Buyer.objects.create(user=user,token=token)
         return Response({}, status=status.HTTP_201_CREATED)
 class CodeGenerateViewSet(viewsets.ModelViewSet):
-    serializer_class = BuySerializer
+    serializer_class = PatientSerializer
     permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
