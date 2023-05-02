@@ -1,4 +1,5 @@
 from time import sleep
+
 from django.contrib.auth.models import User
 from django.views import View
 from rest_framework import generics, status, viewsets
@@ -56,6 +57,11 @@ class WhoIAmView(generics.ListAPIView):
                 id__in=PatientGuardianRelation.objects.filter(guardian=guardian).values('patient')
             )
             res["guardian"]['connected_patients'] = PatientSerializer(connected_patients, many=True).data
+            patient_relation_map = dict(
+                PatientGuardianRelation.objects.filter(guardian=guardian).values_list('patient_id', 'relationship')
+            )
+            for patient_data in res["guardian"]['connected_patients']:
+                patient_data['relationship'] = patient_relation_map[patient_data['id']]
 
         res["user"] = UserSerializer(user).data
 
