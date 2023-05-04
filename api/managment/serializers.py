@@ -4,7 +4,9 @@ from django.core.mail import send_mail
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction, GuardianSetting,PatientGuardianRelation,Buyer
+from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction, GuardianSetting, \
+    PatientGuardianRelation, Buyer
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +21,8 @@ class BuyerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Buyer
         fields = "__all__"
+
+
 class PatientSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 
@@ -67,10 +71,15 @@ class PatientSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientSetting
         fields = "__all__"
+
+
 class GuardianSettingSerializer(serializers.ModelSerializer):
+    patient_current = PatientSerializer()
+
     class Meta:
         model = GuardianSetting
         fields = "__all__"
+
 
 class TariffSerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,7 +110,7 @@ class DoctorSerializer(serializers.ModelSerializer):
         }
 
 
-class DoctorVisitViewOnlySerializer (serializers.ModelSerializer):
+class DoctorVisitViewOnlySerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer()
 
     class Meta:
@@ -154,6 +163,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         instance.save()
         return instance
 
+
 # class BuySerializer(serializers.Serializer):
 #     code = serializers.IntegerField(min_value=100000)
 #     should_send_report = serializers.BooleanField()
@@ -162,6 +172,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 class PatientGuardianRelationSerializer(serializers.ModelSerializer):
     patient = PatientSerializer()
     guardian = GuardianSerializer()
+
     class Meta:
         model = PatientGuardianRelation
         fields = "__all__"

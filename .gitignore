@@ -88,3 +88,9 @@ venv/
 .env
 db.sqlite3
 py/
+data.json
+data.txt
+data_reduced.xml
+exported_01-05-2023.xml
+photo_to_text.py
+test.jpeg
