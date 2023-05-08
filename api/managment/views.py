@@ -78,7 +78,7 @@ class WhoIAmView(generics.ListAPIView):
 class WardViewSet(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
     permission_classes = [IsAuthenticated]
-
+    #
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         return queryset.get(user=self.request.user)

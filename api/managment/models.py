@@ -38,7 +38,7 @@ class GuardianSetting(models.Model):
     guardian = models.OneToOneField(Guardian, on_delete=models.CASCADE)
     language = models.CharField(verbose_name=_("language"), max_length=255, choices=LANGUAGE_CHOICES)
     theme = models.CharField(verbose_name=_("color"), max_length=255, choices=COLORS_CHOICES, default="white")
-
+    patient_current = models.ForeignKey(Patient,on_delete=models.CASCADE,blank=True, null=True)
 
 
 class PatientGuardianRelation(models.Model):
