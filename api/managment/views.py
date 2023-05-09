@@ -287,7 +287,7 @@ class ConnectionViewSet(viewsets.ModelViewSet):
         token = Token.objects.get(user=patient.user)
         code_valid = token_to_code(str(token))
         if code != code_valid:
-            return Response({'detail': "invalid code"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': "Invalid code"}, status=status.HTTP_400_BAD_REQUEST)
         guardian = Guardian.objects.get(user=request.user)
         should_send_report = request.data['should_send_report']
         relationship = request.data['relationship']
@@ -302,7 +302,7 @@ class ConnectionViewSet(viewsets.ModelViewSet):
                 patient=patient, guardian=guardian, should_send_report=should_send_report, relationship=relationship
             )
         else:
-            return Response({'detail': "too much connections"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': "Too much connections"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({}, status=status.HTTP_201_CREATED)
 
 
