@@ -36,7 +36,7 @@ from .serializers import (
     TranzactionSerializer,
     UserSerializer,
 )
-from .utils import get_type_of_user, str_to_int
+from .utils import get_type_of_user, token_to_code
 
 
 class WhoIAmView(generics.ListAPIView):
@@ -285,7 +285,7 @@ class ConnectionViewSet(viewsets.ModelViewSet):
         patient_id = request.data['patient_id']
         patient = Patient.objects.get(id=patient_id)
         token = Token.objects.get(user=patient.user)
-        code_valid = str_to_int(str(token))
+        code_valid = token_to_code(str(token))
         if code != code_valid:
             return Response({'detail': "invalid code"}, status=status.HTTP_400_BAD_REQUEST)
         guardian = Guardian.objects.get(user=request.user)
@@ -327,5 +327,5 @@ class CodeGenerateViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         token = Token.objects.get(user=request.user)
-        code = str_to_int(str(token))
+        code = token_to_code(str(token))
         return Response({"code": code})

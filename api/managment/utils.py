@@ -10,10 +10,10 @@ def get_type_of_user(user):
         return "patient"
     return "guardian"
 
-def str_to_int(token):
+def token_to_code(token: str) -> int:
     res = 0
     secret = 67
     for c in token:
         res *= secret
         res += ord(c)
-    return str(res)[-6:]
+    return int(str(res)[-6:])
