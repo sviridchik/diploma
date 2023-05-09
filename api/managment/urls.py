@@ -11,10 +11,10 @@ from .views import (
     WhoIAmView,
     change_password_view,
     WardViewSet,
-GuardianSettingViewSet,
-ConnectionViewSet,
-BuyViewSet,
-CodeGenerateViewSet
+    GuardianSettingViewSet,
+    ConnectionViewSet,
+    BuyViewSet,
+    CodeGenerateViewSet,
 )
 from rest_framework import routers
 
@@ -36,10 +36,6 @@ router.register('code', CodeGenerateViewSet, basename='code')
 urlpatterns = [
     path('whoiam/', WhoIAmView.as_view()),
     path('change-password/', change_password_view),
-    path("buy/", BuyViewSet.as_view({
-    'get': 'list',
-    'post': 'create'
-})),
-
+    path("buy/", BuyViewSet.as_view({'post': 'create'})),
 ]
 urlpatterns += router.urls
