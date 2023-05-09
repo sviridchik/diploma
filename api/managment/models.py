@@ -101,5 +101,6 @@ def add_basic_setting(sender,instance,created,**kwargs):
 @receiver(post_save,sender=Guardian)
 def add_basic_setting(sender,instance,created,**kwargs):
     if created:
+        # raise Exception("hi")
         GuardianSetting.objects.create(guardian = instance,language="RUSSIAN",theme="white")
 

@@ -122,9 +122,10 @@ class PatientSettingViewSet(viewsets.ModelViewSet):
 class GuardianSettingViewSet(viewsets.ModelViewSet):
     queryset = GuardianSetting.objects.all()
     serializer_class = GuardianSettingSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get_object(self):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = GuardianSetting.objects.all()
+        # raise  Exception(queryset, GuardianSetting.objects.all())
         return queryset.get(guardian=self.request.user.guardian)
 
     def get_queryset(self):
@@ -154,6 +155,10 @@ class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateMo
         except User.DoesNotExist:
             raise ValidationError({"detail": "user doesn't exist"})
 
+    # def update(self, request, *args, **kwargs):
+    #     raise Exception(request, *args, **kwargs)
+    #     return super().update(self, request, *args, **kwargs)
+
 class TariffViewSet(viewsets.ModelViewSet):
     queryset = Tariff.objects.all()
     serializer_class = TariffSerializer
@@ -170,10 +175,11 @@ class DoctorViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def create(self, request):
-        if request.GET.get("ward") is not None:
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
             try:
-                id = int(self.request.query_params['ward'])
-                ward = Patient.objects.get(id=id)
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
                 request.user = ward.user
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
@@ -183,8 +189,8 @@ class DoctorViewSet(viewsets.ModelViewSet):
         type_user = get_type_of_user(self.request.user)
         if type_user == "guardian":
             try:
-                ward = int(self.request.query_params['ward'])
-                ward = Patient.objects.get(id=ward)
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
             return Doctor.objects.filter(patient=ward)
@@ -195,30 +201,35 @@ class DoctorViewSet(viewsets.ModelViewSet):
 class DoctorVisitViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
-    def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
-            return DoctorVisitViewOnlySerializer
-        else:
-            return DoctorVisitSerializer
-
-# raise ValidationError({"detail": "404 bad ward"})
-
     def create(self, request):
-        if request.GET.get("ward") is not None:
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
             try:
-                id = int(request.GET.get("ward"))
-                ward = Patient.objects.get(id=id)
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
                 request.user = ward.user
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
-        # do your thing here
         return super().create(request)
 
-    def destroy(self, request, *args, **kwargs):
-        if request.GET.get("ward") is not None:
+    def get_queryset(self):
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
             try:
-                id = int(request.GET.get("ward"))
-                ward = Patient.objects.get(id=id)
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
+            except Exception:
+                raise ValidationError({"detail": "404 bad ward"})
+            return DoctorVisit.objects.filter(patient=ward)
+        else:
+            return DoctorVisit.objects.filter(patient__user=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
+            try:
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
                 request.user = ward.user
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
@@ -227,17 +238,6 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def get_queryset(self):
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "guardian":
-            try:
-                ward = int(self.request.query_params['ward'])
-                ward = Patient.objects.get(id=ward)
-            except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
-            return DoctorVisit.objects.filter(patient=ward)
-        else:
-            return DoctorVisit.objects.filter(patient__user=self.request.user)
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:

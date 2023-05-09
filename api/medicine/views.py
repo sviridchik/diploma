@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 # import matplotlib.pyplot as plt
 # import numpy as np
 from django.shortcuts import get_object_or_404
-from managment.models import Patient, Guardian
+from managment.models import Patient, Guardian, GuardianSetting
 from django.utils import timezone
 from rest_framework import generics
 from rest_framework import status
@@ -143,20 +143,35 @@ class CureViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     def create(self, request):
-        if request.GET.get("ward") is not None:
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
             try:
-                id = int(request.GET.get("ward"))
-                ward = Patient.objects.get(id=id)
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
                 request.user = ward.user
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
         return super().create(request)
 
-    def update(self, request, *args, **kwargs):
-        if request.GET.get("ward") is not None:
+    def get_queryset(self):
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
             try:
-                id = int(request.GET.get("ward"))
-                ward = Patient.objects.get(id=id)
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
+            except Exception:
+                raise ValidationError({"detail": "404 bad ward"})
+            return Cure.objects.filter(patient=ward)
+        else:
+            return Cure.objects.filter(patient__user=self.request.user)
+
+
+    def update(self, request, *args, **kwargs):
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
+            try:
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
                 request.user = ward.user
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
@@ -172,14 +187,14 @@ class CureViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
-        if request.GET.get("ward") is not None:
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
             try:
-                id = int(request.GET.get("ward"))
-                ward = Patient.objects.get(id=id)
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
                 request.user = ward.user
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
-
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -190,18 +205,6 @@ class CureViewSet(viewsets.ModelViewSet):
         else:
             return MainCureSerializer
 
-    def get_queryset(self):
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "guardian":
-            try:
-                ward = int(self.request.query_params['ward'])
-                ward = Patient.objects.get(id=ward)
-
-            except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
-            return Cure.objects.filter(patient=ward)
-        else:
-            return Cure.objects.filter(patient__user=self.request.user)
 
 
 class ScheduleViewSet(viewsets.ModelViewSet):

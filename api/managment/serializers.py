@@ -74,11 +74,24 @@ class PatientSettingSerializer(serializers.ModelSerializer):
 
 
 class GuardianSettingSerializer(serializers.ModelSerializer):
-    patient_current = PatientSerializer()
+    # patient_current = serializers.IntegerField()
+    patient_current = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
+
+    # def to_internal_value(self, data):
+    #     data['patient_current'] = PatientSerializer(Patient.objects.get(id=data['patient_current'])).data
+    #     return super().to_internal_value(data)
+    def update(self, instance, validated_data):
+        # raise Exception(instance.guardian)
+        try:
+            PatientGuardianRelation.objects.get(guardian=instance.guardian, patient=validated_data['patient_current'],banned=False)
+        except PatientGuardianRelation.DoesNotExist:
+            raise ValidationError({"detail": "patientGuardianRelation doesn't exist or banned"})
+        return super().update(instance, validated_data)
 
     class Meta:
         model = GuardianSetting
         fields = "__all__"
+
 
 
 class TariffSerializer(serializers.ModelSerializer):
