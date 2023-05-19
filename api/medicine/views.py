@@ -1,30 +1,30 @@
 import datetime
 import json
+
 from django.contrib.auth.models import User
 
 # import matplotlib.pyplot as plt
 # import numpy as np
 from django.shortcuts import get_object_or_404
-from managment.models import Patient, Guardian, GuardianSetting
 from django.utils import timezone
-from rest_framework import generics
-from rest_framework import status
-from rest_framework import viewsets
+from managment.models import Guardian, GuardianSetting, Patient
+from managment.utils import get_type_of_user
+from rest_framework import generics, status, viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from statistic.models import TakenMed, MissedMed
-from statistic.serializers import TakenMedSerializer,MissedMedSerializer
-from managment.utils import get_type_of_user
+from statistic.models import MissedMed, TakenMed
+from statistic.serializers import MissedMedSerializer, TakenMedSerializer
 
-from .models import Cure, TimeTable, Schedule
+from .models import Cure, Photo, Schedule, TimeTable
 from .serializers import (
     CureSerializer,
-    MainScheduleSerializer,
     MainCureSerializer,
+    MainScheduleSerializer,
     MainTimeTableSerializer,
+    PhotoSerializer,
     ViewOnlyCureSerializer,
 )
-from rest_framework.exceptions import ValidationError
 
 
 class CollectStatisticView(generics.ListAPIView):
@@ -104,14 +104,11 @@ class TakeViewSet(generics.RetrieveAPIView):
             for t in times:
                 time_processed = datetime.datetime.strptime(t["time"], '%H:%M:%S')
                 if not cure.strict_status:
-
                     if time_processed.hour == today_time.hour:
-
                         flag_is_late = False
                         # raise Exception(time_processed.hour ,today_time.hour)
                         break
                     else:
-
                         flag_is_late = True
                         break
 
@@ -165,7 +162,6 @@ class CureViewSet(viewsets.ModelViewSet):
         else:
             return Cure.objects.filter(patient__user=self.request.user)
 
-
     def update(self, request, *args, **kwargs):
         type_user = get_type_of_user(self.request.user)
         if type_user == "guardian":
@@ -206,7 +202,6 @@ class CureViewSet(viewsets.ModelViewSet):
             return MainCureSerializer
 
 
-
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = MainScheduleSerializer
@@ -217,3 +212,8 @@ class TimeTableViewSet(viewsets.ModelViewSet):
     queryset = TimeTable.objects.all()
     serializer_class = MainTimeTableSerializer
     permission_classes = (IsAuthenticated,)
+
+
+class PhotoViewSet(viewsets.ModelViewSet):
+    queryset = Photo.objects.all()
+    serializer_class = PhotoSerializer

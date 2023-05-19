@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Schedule, Cure, TimeTable
+from .models import Cure, Photo, Schedule, TimeTable
 
 
 class MainTimeTableSerializer(serializers.ModelSerializer):
@@ -85,4 +85,10 @@ class CureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cure
+        fields = "__all__"
+
+
+class PhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Photo
         fields = "__all__"

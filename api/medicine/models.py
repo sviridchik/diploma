@@ -34,3 +34,10 @@ class Cure(models.Model):
 
     class Meta:
         ordering = ('id',)
+
+
+class Photo(models.Model):
+    file = models.ImageField(upload_to='media/')
+
+    def __str__(self):
+        return self.file.name
