@@ -1,6 +1,8 @@
 import datetime
 import json
 
+import pytesseract
+from django.conf import settings
 from django.contrib.auth.models import User
 
 # import matplotlib.pyplot as plt
@@ -9,12 +11,14 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from managment.models import Guardian, GuardianSetting, Patient
 from managment.utils import get_type_of_user
+from PIL import Image
 from rest_framework import generics, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from statistic.models import MissedMed, TakenMed
 from statistic.serializers import MissedMedSerializer, TakenMedSerializer
+from thefuzz import fuzz, process
 
 from .models import Cure, Photo, Schedule, TimeTable
 from .serializers import (
@@ -217,3 +221,22 @@ class TimeTableViewSet(viewsets.ModelViewSet):
 class PhotoViewSet(viewsets.ModelViewSet):
     queryset = Photo.objects.all()
     serializer_class = PhotoSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request):
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "patient":
+            patient = self.request.user.patient
+            chosen_lang = patient.patientsetting.language
+            tess_lang = {'RUSSIAN': 'rus', 'ENGLISH': 'eng'}[chosen_lang]
+            img1 = Image.open(request.data['file'])
+            text = pytesseract.image_to_string(img1, config=settings.TESSERACT_CONFIG + f' -l {tess_lang}')
+            cures_titles = patient.cure_set.all().values_list('title', flat=True)
+            matches = process.extract(text, cures_titles, scorer=fuzz.partial_ratio, limit=10)
+            cure_id_by_title = dict(patient.cure_set.values_list('title', 'id'))
+            matches_with_cure_id = [
+                {'title': match[0], 'id': cure_id_by_title[match[0]], 'score': match[1]} for match in matches
+            ]
+            return Response(matches_with_cure_id)
+        else:
+            raise ValidationError({"detail": "You are not patient"})

@@ -186,3 +186,7 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 # EMAIL_PORT = 587 # TLS
 EMAIL_PORT = 465  # SSL
+
+os.environ.setdefault('TESSDATA_PREFIX', 'tessdata')
+# Without lang
+TESSERACT_CONFIG = r' --psm 6 --oem 3'
