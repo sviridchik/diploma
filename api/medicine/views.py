@@ -231,6 +231,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
             tess_lang = {'RUSSIAN': 'rus', 'ENGLISH': 'eng'}[chosen_lang]
             img1 = Image.open(request.data['file'])
             text = pytesseract.image_to_string(img1, config=settings.TESSERACT_CONFIG + f' -l {tess_lang}')
+            print(text)
             cures_titles = patient.cure_set.all().values_list('title', flat=True)
             matches = process.extract(text, cures_titles, scorer=fuzz.partial_ratio, limit=10)
             cure_id_by_title = dict(patient.cure_set.values_list('title', 'id'))
