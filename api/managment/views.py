@@ -326,4 +326,7 @@ class CodeGenerateViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         token = Token.objects.get(user=request.user)
         code = token_to_code(str(token))
-        return Response({"code": code})
+        try:
+            return Response({"code": code, 'id': request.user.patient.id})
+        except Patient.DoesNotExist:
+            raise ValidationError({'detail': 'You are not patient'})
