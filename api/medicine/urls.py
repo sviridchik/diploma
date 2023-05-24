@@ -1,10 +1,11 @@
 from django.urls import include, path, re_path
 from rest_framework import routers
 
-from .views import CollectStatisticView, CureViewSet, PhotoViewSet, ScheduleViewSet, TakeViewSet, TimeTableViewSet
+from .views import CollectStatisticView, CureViewSet, PhotoViewSet, ScheduleViewSet, TakeViewSet, TimeTableViewSet,CureViewDateSet
 
 router = routers.DefaultRouter()
 router.register('cure', CureViewSet, basename='cure')
+router.register('cure_date', CureViewDateSet, basename='cure')
 router.register('schedule', ScheduleViewSet, basename='schedule')
 router.register('time', TimeTableViewSet, basename='time')
 router.register('photos', PhotoViewSet, basename='photos')

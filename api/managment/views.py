@@ -1,4 +1,6 @@
 from time import sleep
+import datetime
+from django.db.models import Q
 
 from django.contrib.auth.models import User
 from django.views import View
@@ -259,7 +261,44 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
         else:
             return DoctorVisitSerializer
 
+class VisitViewDateSet(viewsets.ModelViewSet):
+    # serializer_class = MainCureSerializer
+    permission_classes = (IsAuthenticated,)
 
+    def list(self, request, *args, **kwargs):
+        date_send = request.GET.get('date', '')
+        if len(date_send)>0:
+            date_send = date_send.split("-")
+            date_send = [el.strip("'") for el in date_send]
+            date_send = [el.strip('"') for el in date_send]
+            date_send = datetime.date(int(date_send[0]),int(date_send[1]),int(date_send[2]))
+        queryset = self.filter_queryset(self.get_queryset())
+        r = queryset.get(id=1)
+        queryset = queryset.filter(date__date=date_send)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        type_user = get_type_of_user(self.request.user)
+        if type_user == "guardian":
+            try:
+                guardian = Guardian.objects.get(user=self.request.user)
+                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
+            except Exception:
+                raise ValidationError({"detail": "404 bad ward"})
+            return DoctorVisit.objects.filter(patient=ward)
+        else:
+            return DoctorVisit.objects.filter(patient__user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return ReadOnlyDoctorVisitSerializer
+        else:
+            return DoctorVisitSerializer
 @api_view(http_method_names=['PATCH'])
 @permission_classes([IsAuthenticated])
 def change_password_view(request):

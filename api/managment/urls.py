@@ -15,6 +15,7 @@ from .views import (
     ConnectionViewSet,
     BuyViewSet,
     CodeGenerateViewSet,
+    VisitViewDateSet
 )
 from rest_framework import routers
 
@@ -29,6 +30,7 @@ router.register('tariff', TariffViewSet, basename='tariff')
 router.register('tranzaction', TranzactionViewSet, basename='tranzaction')
 router.register('doctor', DoctorViewSet, basename='doctor')
 router.register('doctorvisit', DoctorVisitViewSet, basename='doctorvisit')
+router.register('doctorvisit_date', VisitViewDateSet, basename='doctorvisit')
 router.register('connect', ConnectionViewSet, basename='connect')
 router.register('code', CodeGenerateViewSet, basename='code')
 
