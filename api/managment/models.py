@@ -13,7 +13,6 @@ class Buyer(models.Model):
     token = models.CharField(max_length=512)
 
 
-
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(_('first name'), max_length=150, blank=True)
@@ -34,11 +33,13 @@ class Guardian(models.Model):
 
     def __str__(self):
         return self.first_name + " " + self.last_name
+
+
 class GuardianSetting(models.Model):
     guardian = models.OneToOneField(Guardian, on_delete=models.CASCADE)
     language = models.CharField(verbose_name=_("language"), max_length=255, choices=LANGUAGE_CHOICES)
     theme = models.CharField(verbose_name=_("color"), max_length=255, choices=COLORS_CHOICES, default="white")
-    patient_current = models.ForeignKey(Patient,on_delete=models.CASCADE,blank=True, null=True)
+    patient_current = models.ForeignKey(Patient, on_delete=models.CASCADE, blank=True, null=True)
 
 
 class PatientGuardianRelation(models.Model):
@@ -68,9 +69,7 @@ class PatientSetting(models.Model):
 
 class Tariff(models.Model):
     price = models.DecimalField(verbose_name=_("price"), max_digits=20, decimal_places=12)
-    date = models.DateTimeField(verbose_name=_("date_start"))
-    duration_days = models.PositiveIntegerField(verbose_name=_("duration_days"))
-    user = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
 
 
 class Tranzaction(models.Model):
@@ -93,14 +92,14 @@ class DoctorVisit(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
 
 
-@receiver(post_save,sender=Patient)
-def add_basic_setting(sender,instance,created,**kwargs):
+@receiver(post_save, sender=Patient)
+def add_basic_setting(sender, instance, created, **kwargs):
     if created:
-        PatientSetting.objects.create(patient = instance,color="white",font=14,city="Minsk",language="RUSSIAN")
+        PatientSetting.objects.create(patient=instance, color="white", font=14, city="Minsk", language="RUSSIAN")
 
-@receiver(post_save,sender=Guardian)
-def add_basic_setting(sender,instance,created,**kwargs):
+
+@receiver(post_save, sender=Guardian)
+def add_basic_setting(sender, instance, created, **kwargs):
     if created:
         # raise Exception("hi")
-        GuardianSetting.objects.create(guardian = instance,language="RUSSIAN",theme="white")
-
+        GuardianSetting.objects.create(guardian=instance, language="RUSSIAN", theme="white")
