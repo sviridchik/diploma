@@ -190,8 +190,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def create(self, request):
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "guardian":
+        if 'as_patient' not in self.request.query_params:
             try:
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
@@ -201,8 +200,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
         return super().create(request)
 
     def get_queryset(self):
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "guardian":
+        if 'as_patient' not in self.request.query_params:
             try:
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
@@ -218,8 +216,7 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
 
 
     def create(self, request):
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "guardian":
+        if 'as_patient' not in self.request.query_params:
             try:
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
@@ -229,8 +226,7 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
         return super().create(request)
 
     def get_queryset(self):
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "guardian":
+        if 'as_patient' not in self.request.query_params:
             try:
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
@@ -241,8 +237,7 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
             return DoctorVisit.objects.filter(patient__user=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "guardian":
+        if 'as_patient' not in self.request.query_params:
             try:
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
@@ -282,8 +277,7 @@ class VisitViewDateSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def get_queryset(self):
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "guardian":
+        if 'as_patient' not in self.request.query_params:
             try:
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current

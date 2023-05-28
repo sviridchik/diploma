@@ -130,14 +130,13 @@ class ReportTakenGuardianView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         final_data = {"taken": 0, "missed": 0}
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "guardian":
+        if 'as_patient' not in self.request.query_params:
             try:
                 ward = int(self.request.query_params['ward'])
                 patient = Patient.objects.get(id=ward)
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
-        elif type_user=="patient":
+        else:
             patient = Patient.objects.get(user=self.request.user)
 
         #     ==================
