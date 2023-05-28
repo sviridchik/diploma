@@ -262,20 +262,17 @@ class PhotoViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     def create(self, request):
-        type_user = get_type_of_user(self.request.user)
-        if type_user == "patient":
-            patient = self.request.user.patient
-            chosen_lang = patient.patientsetting.language
-            tess_lang = {'RUSSIAN': 'rus', 'ENGLISH': 'eng'}[chosen_lang]
-            img1 = Image.open(request.data['file'])
-            text = pytesseract.image_to_string(img1, config=settings.TESSERACT_CONFIG + f' -l {tess_lang}')
-            print(text)
-            cures_titles = patient.cure_set.all().values_list('title', flat=True)
-            matches = process.extract(text, cures_titles, scorer=fuzz.partial_ratio, limit=10)
-            cure_id_by_title = dict(patient.cure_set.values_list('title', 'id'))
-            matches_with_cure_id = [
-                {'title': match[0], 'id': cure_id_by_title[match[0]], 'score': match[1]} for match in matches
-            ]
-            return Response(matches_with_cure_id)
-        else:
-            raise ValidationError({"detail": "You are not patient"})
+        patient = self.request.user.patient
+        chosen_lang = patient.patientsetting.language
+        tess_lang = {'RUSSIAN': 'rus', 'ENGLISH': 'eng'}[chosen_lang]
+        img1 = Image.open(request.data['file'])
+        text = pytesseract.image_to_string(img1, config=settings.TESSERACT_CONFIG + f' -l {tess_lang}')
+        print(text)
+        cures_titles = map(lambda title: title.lower(), patient.cure_set.all().values_list('title', flat=True))
+        matches = process.extract(text.lower(), cures_titles, scorer=fuzz.partial_ratio, limit=10)
+        print(matches)
+        cure_id_by_title = {title.lower(): id_ for title, id_ in  patient.cure_set.values_list('title', 'id')}
+        matches_with_cure_id = [
+            {'title': match[0], 'id': cure_id_by_title[match[0]], 'score': match[1]} for match in matches
+        ]
+        return Response(matches_with_cure_id)
