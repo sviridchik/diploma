@@ -82,10 +82,11 @@ class GuardianSettingSerializer(serializers.ModelSerializer):
     #     return super().to_internal_value(data)
     def update(self, instance, validated_data):
         # raise Exception(instance.guardian)
-        try:
-            PatientGuardianRelation.objects.get(guardian=instance.guardian, patient=validated_data['patient_current'],banned=False)
-        except PatientGuardianRelation.DoesNotExist:
-            raise ValidationError({"detail": "patientGuardianRelation doesn't exist or banned"})
+        if 'patient_current' in validated_data:
+            try:
+                PatientGuardianRelation.objects.get(guardian=instance.guardian, patient=validated_data['patient_current'],banned=False)
+            except PatientGuardianRelation.DoesNotExist:
+                raise ValidationError({"detail": "patientGuardianRelation doesn't exist or banned"})
         return super().update(instance, validated_data)
 
     class Meta:
