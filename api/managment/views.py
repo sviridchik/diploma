@@ -273,7 +273,6 @@ class VisitViewDateSet(viewsets.ModelViewSet):
             date_send = [el.strip('"') for el in date_send]
             date_send = datetime.date(int(date_send[0]),int(date_send[1]),int(date_send[2]))
         queryset = self.filter_queryset(self.get_queryset())
-        r = queryset.get(id=1)
         queryset = queryset.filter(date__date=date_send)
         page = self.paginate_queryset(queryset)
         if page is not None:
