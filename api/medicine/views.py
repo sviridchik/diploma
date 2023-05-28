@@ -139,21 +139,25 @@ class TakeViewSet(generics.RetrieveAPIView):
             return Response({"error": "no need to take it"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
 
+
 class CureViewDateSet(viewsets.ModelViewSet):
     serializer_class = MainCureSerializer
     permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         date_send = request.GET.get('date', '')
-        if len(date_send)>0:
+        if len(date_send) > 0:
             date_send = date_send.split("-")
             date_send = [el.strip("'") for el in date_send]
             date_send = [el.strip('"') for el in date_send]
-            date_send = datetime.date(int(date_send[0]),int(date_send[1]),int(date_send[2]))
+            date_send = datetime.date(int(date_send[0]), int(date_send[1]), int(date_send[2]))
 
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(Q(schedule__cycle_start__lte=date_send) & Q(schedule__cycle_end__gte=date_send)
-                                   | Q(schedule__cycle_start=date_send)| Q(schedule__cycle_end=date_send) )
+        queryset = queryset.filter(
+            Q(schedule__cycle_start__lte=date_send) & Q(schedule__cycle_end__gte=date_send)
+            | Q(schedule__cycle_start=date_send)
+            | Q(schedule__cycle_end=date_send)
+        )
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -168,11 +172,14 @@ class CureViewDateSet(viewsets.ModelViewSet):
             try:
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
-            except Exception:
+            except Exception as exc:
+                print(exc)
                 raise ValidationError({"detail": "404 bad ward"})
             return Cure.objects.filter(patient=ward)
         else:
             return Cure.objects.filter(patient__user=self.request.user)
+
+
 class CureViewSet(viewsets.ModelViewSet):
     serializer_class = MainCureSerializer
     permission_classes = (IsAuthenticated,)
@@ -184,7 +191,8 @@ class CureViewSet(viewsets.ModelViewSet):
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
                 request.user = ward.user
-            except Exception:
+            except Exception as exc:
+                print(exc)
                 raise ValidationError({"detail": "404 bad ward"})
         return super().create(request)
 
@@ -194,7 +202,8 @@ class CureViewSet(viewsets.ModelViewSet):
             try:
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
-            except Exception:
+            except Exception as exc:
+                print(exc)
                 raise ValidationError({"detail": "404 bad ward"})
             return Cure.objects.filter(patient=ward)
         else:
