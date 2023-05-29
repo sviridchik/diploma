@@ -262,11 +262,7 @@ class VisitViewDateSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         date_send = request.GET.get('date', '')
-        if len(date_send)>0:
-            date_send = date_send.split("-")
-            date_send = [el.strip("'") for el in date_send]
-            date_send = [el.strip('"') for el in date_send]
-            date_send = datetime.date(int(date_send[0]),int(date_send[1]),int(date_send[2]))
+        date_send = datetime.datetime.fromisoformat(date_send).date()
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(date__date=date_send)
         page = self.paginate_queryset(queryset)
