@@ -1,5 +1,7 @@
 import datetime
 import json
+from operator import itemgetter
+from string import ascii_letters
 
 import pytesseract
 from django.conf import settings
@@ -263,12 +265,31 @@ class PhotoViewSet(viewsets.ModelViewSet):
         tess_lang = {'RUSSIAN': 'rus', 'ENGLISH': 'eng'}[chosen_lang]
         img1 = Image.open(request.data['file'])
         text = pytesseract.image_to_string(img1, config=settings.TESSERACT_CONFIG + f' -l {tess_lang}')
-        print(text)
-        cures_titles = map(lambda title: title.lower(), patient.cure_set.all().values_list('title', flat=True))
-        matches = process.extract(text.lower(), cures_titles, scorer=fuzz.partial_ratio, limit=10)
-        print(matches)
-        cure_id_by_title = {title.lower(): id_ for title, id_ in  patient.cure_set.values_list('title', 'id')}
+        all_symbols = 'АаБбВвГгДдЕеЁёЖжЗзИиЙйКкЛлМмНнОоПпСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя' + ascii_letters + ' '
+        text = "".join(ch for ch in text if ch in all_symbols)
+        print(text.lower())
+        cures_titles = list(map(lambda title: title.lower(), patient.cure_set.all().values_list('title', flat=True)))
+        print(cures_titles)
+        res_matches = None
+        for line in text.split('\n'):
+            for word in line.split(' '):
+                if not word:
+                    continue
+                matches = process.extract(word.lower(), cures_titles, scorer=fuzz.ratio, limit=10)
+                if res_matches is None:
+                    res_matches = matches
+                else:
+                    matches_dict = dict(matches)
+                    res_matches_dict = dict(res_matches)
+                    res_matches = [
+                        (cure_title, max(res_matches_dict.get(cure_title, 0), matches_dict.get(cure_title, 0)))
+                        for cure_title in cures_titles
+                    ]
+
+        res_matches.sort(key=itemgetter(1), reverse=True)
+        print(res_matches)
+        cure_id_by_title = {title.lower(): id_ for title, id_ in patient.cure_set.values_list('title', 'id')}
         matches_with_cure_id = [
-            {'title': match[0], 'id': cure_id_by_title[match[0]], 'score': match[1]} for match in matches
+            {'title': match[0], 'id': cure_id_by_title[match[0]], 'score': match[1]} for match in res_matches
         ]
         return Response(matches_with_cure_id)
