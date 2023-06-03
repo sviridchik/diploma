@@ -10,7 +10,6 @@ from .views import (
     DoctorVisitViewSet,
     WhoIAmView,
     change_password_view,
-    WardViewSet,
     GuardianSettingViewSet,
     ConnectionViewSet,
     BuyViewSet,
@@ -21,7 +20,6 @@ from rest_framework import routers
 
 
 router = routers.DefaultRouter()
-router.register('ward', WardViewSet, basename='wards')
 router.register('patients', PatientViewSet, basename='patients')
 router.register('settings_guard', GuardianSettingViewSet, basename='settings_guard')
 router.register('settings', PatientSettingViewSet, basename='settings')

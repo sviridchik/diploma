@@ -135,7 +135,7 @@ class ReportTakenGuardianView(generics.ListAPIView):
                 ward = int(self.request.query_params['ward'])
                 patient = Patient.objects.get(id=ward)
             except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
+                raise ValidationError({"detail": _("ward not found")})
         else:
             patient = Patient.objects.get(user=self.request.user)
 

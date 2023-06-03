@@ -22,6 +22,7 @@ from rest_framework.response import Response
 from statistic.models import MissedMed, TakenMed
 from statistic.serializers import MissedMedSerializer, TakenMedSerializer
 from thefuzz import fuzz, process
+from django.utils.translation import gettext_lazy as _
 
 from .models import Cure, Photo, Schedule, TimeTable
 from .serializers import (
@@ -138,7 +139,7 @@ class TakeViewSet(generics.RetrieveAPIView):
                 )
                 serializer = MissedMedSerializer(missed_med)
         else:
-            return Response({"error": "no need to take it"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": _("no need to take it")}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
 
 
@@ -171,7 +172,7 @@ class CureViewDateSet(viewsets.ModelViewSet):
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception as exc:
                 print(exc)
-                raise ValidationError({"detail": "404 bad ward"})
+                raise ValidationError({"detail": _("ward not found")})
             return Cure.objects.filter(patient=ward)
         else:
             return Cure.objects.filter(patient__user=self.request.user)
@@ -188,7 +189,7 @@ class CureViewSet(viewsets.ModelViewSet):
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception as exc:
                 print('CureViewSet, get_queryset:', exc)
-                raise ValidationError({"detail": "404 bad ward"})
+                raise ValidationError({"detail": _("ward not found")})
             return Cure.objects.filter(patient=ward)
         else:
             return Cure.objects.filter(patient__user=self.request.user)

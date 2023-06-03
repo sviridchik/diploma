@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from .models import Cure, Photo, Schedule, TimeTable
@@ -36,6 +37,18 @@ class ViewOnlyScheduleSerializer(serializers.ModelSerializer):
 
 class MainCureSerializer(serializers.ModelSerializer):
     schedule = MainScheduleSerializer()
+    type_label = serializers.SerializerMethodField()
+    dose_type_label = serializers.SerializerMethodField()
+    food_label = serializers.SerializerMethodField()
+
+    def get_type_label(self, cure):
+        return _(cure.type)
+
+    def get_dose_type_label(self, cure):
+        return _(cure.dose_type)
+
+    def get_food_label(self, cure):
+        return _(cure.food)
 
     def create(self, validated_data):
         schedule_data = validated_data.pop('schedule')
@@ -63,15 +76,30 @@ class MainCureSerializer(serializers.ModelSerializer):
             'title',
             'dose',
             'dose_type',
+            'dose_type_label',
             'type',
+            'type_label',
             "schedule",
             "food",
+            "food_label",
             "strict_status",
         )
 
 
 class ViewOnlyCureSerializer(serializers.ModelSerializer):
     schedule = ViewOnlyScheduleSerializer()
+    type_label = serializers.SerializerMethodField()
+    dose_type_label = serializers.SerializerMethodField()
+    food_label = serializers.SerializerMethodField()
+
+    def get_type_label(self, cure):
+        return _(cure.type)
+
+    def get_dose_type_label(self, cure):
+        return _(cure.dose_type)
+
+    def get_food_label(self, cure):
+        return _(cure.food)
 
     class Meta:
         model = Cure
