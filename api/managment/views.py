@@ -236,20 +236,6 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
         else:
             return DoctorVisit.objects.filter(patient__user=self.request.user)
 
-    def destroy(self, request, *args, **kwargs):
-        if 'as_patient' not in self.request.query_params:
-            try:
-                guardian = Guardian.objects.get(user=self.request.user)
-                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
-                request.user = ward.user
-            except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
-
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return ReadOnlyDoctorVisitSerializer
