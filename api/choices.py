@@ -14,6 +14,9 @@ TYPE_CHOICES = [
     ('ampule', 'ampule'),
     ('pill', 'pill'),
     ('suspension', 'suspension'),
+    ('bag', 'bag'),
+    ('aerosols', 'aerosols'),
+    ('capsules', 'capsules'),
 ]
 
 SPEC_CHOICES = [
@@ -34,6 +37,7 @@ FOOD_CHOICES = [
 DOSE_CHOICES = [
     ('pcs', 'pcs'),
     ('ml', 'ml'),
+
 ]
 DEVISE_CHOICES = [
     ('tablet', 'tablet'),
