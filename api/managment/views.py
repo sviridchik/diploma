@@ -206,9 +206,9 @@ class DoctorViewSet(viewsets.ModelViewSet):
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
-            return Doctor.objects.filter(patient=ward)
+            return Doctor.objects.filter(patient=ward).order_by('id')
         else:
-            return Doctor.objects.filter(patient__user=self.request.user)
+            return Doctor.objects.filter(patient__user=self.request.user).order_by('id')
 
 
 class DoctorVisitViewSet(viewsets.ModelViewSet):
@@ -232,9 +232,9 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception:
                 raise ValidationError({"detail": "404 bad ward"})
-            return DoctorVisit.objects.filter(patient=ward)
+            return DoctorVisit.objects.filter(patient=ward).order_by('id')
         else:
-            return DoctorVisit.objects.filter(patient__user=self.request.user)
+            return DoctorVisit.objects.filter(patient__user=self.request.user).order_by('id')
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
