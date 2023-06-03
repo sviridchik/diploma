@@ -42,7 +42,7 @@ class MainCureSerializer(serializers.ModelSerializer):
         s = MainScheduleSerializer(data=schedule_data)
         s.is_valid(raise_exception=True)
         schedule_model = s.save()
-        validated_data['patient'] = self.context['request'].user.patient
+        validated_data['patient'] = self.context['ward']
         validated_data['schedule'] = schedule_model
         cure = super().create(validated_data)
         return cure
