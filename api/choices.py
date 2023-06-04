@@ -15,6 +15,9 @@ TYPE_CHOICES = [
     ('ampule', _('ampule')),
     ('pill', _('pill')),
     ('suspension', _('suspension')),
+    ('bag', _('bag')),
+    ('aerosols', _('aerosols')),
+    ('capsules', _('capsules')),
 ]
 
 SPEC_CHOICES = [
