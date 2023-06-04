@@ -22,6 +22,7 @@ from rest_framework.response import Response
 from statistic.models import MissedMed, TakenMed
 from statistic.serializers import MissedMedSerializer, TakenMedSerializer
 from thefuzz import fuzz, process
+from django.utils.translation import gettext_lazy as _
 
 from .models import Cure, Photo, Schedule, TimeTable
 from .serializers import (
@@ -138,7 +139,7 @@ class TakeViewSet(generics.RetrieveAPIView):
                 )
                 serializer = MissedMedSerializer(missed_med)
         else:
-            return Response({"error": "no need to take it"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": _("no need to take it")}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
 
 
@@ -171,7 +172,7 @@ class CureViewDateSet(viewsets.ModelViewSet):
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception as exc:
                 print(exc)
-                raise ValidationError({"detail": "404 bad ward"})
+                raise ValidationError({"detail": _("ward not found")})
             return Cure.objects.filter(patient=ward)
         else:
             return Cure.objects.filter(patient__user=self.request.user)
@@ -181,65 +182,33 @@ class CureViewSet(viewsets.ModelViewSet):
     serializer_class = MainCureSerializer
     permission_classes = (IsAuthenticated,)
 
-    def create(self, request):
-        if 'as_patient' not in self.request.query_params:
-            try:
-                guardian = Guardian.objects.get(user=self.request.user)
-                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
-                request.user = ward.user
-            except Exception as exc:
-                print(exc)
-                raise ValidationError({"detail": "404 bad ward"})
-        return super().create(request)
-
     def get_queryset(self):
         if 'as_patient' not in self.request.query_params:
             try:
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception as exc:
-                print(exc)
-                raise ValidationError({"detail": "404 bad ward"})
+                print('CureViewSet, get_queryset:', exc)
+                raise ValidationError({"detail": _("ward not found")})
             return Cure.objects.filter(patient=ward)
         else:
             return Cure.objects.filter(patient__user=self.request.user)
-
-    def update(self, request, *args, **kwargs):
-        if 'as_patient' not in self.request.query_params:
-            try:
-                guardian = Guardian.objects.get(user=self.request.user)
-                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
-                request.user = ward.user
-            except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            instance._prefetched_objects_cache = {}
-
-        return Response(serializer.data)
-
-    def destroy(self, request, *args, **kwargs):
-        if 'as_patient' not in self.request.query_params:
-            try:
-                guardian = Guardian.objects.get(user=self.request.user)
-                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
-                request.user = ward.user
-            except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return ViewOnlyCureSerializer
         else:
             return MainCureSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if 'as_patient' not in self.request.query_params:
+            guardian = Guardian.objects.get(user=self.request.user)
+            context['ward'] = GuardianSetting.objects.get(guardian=guardian).patient_current
+        else:
+            context['ward'] = self.request.user.patient
+
+        return context
 
 
 class ScheduleViewSet(viewsets.ModelViewSet):

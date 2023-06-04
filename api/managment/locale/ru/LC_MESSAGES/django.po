@@ -1,0 +1,121 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: django\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-06-03 16:57+0300\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
+"%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: managment/models.py:18 managment/models.py:30 managment/models.py:83
+msgid "first name"
+msgstr "имя"
+
+#: managment/models.py:19 managment/models.py:31 managment/models.py:84
+msgid "last name"
+msgstr "фамилия"
+
+#: managment/models.py:20 managment/models.py:28
+msgid "age"
+msgstr "возраст"
+
+#: managment/models.py:21 managment/models.py:32
+msgid "phone"
+msgstr "Телефон"
+
+#: managment/models.py:40 managment/models.py:67
+msgid "language"
+msgstr "язык"
+
+#: managment/models.py:41 managment/models.py:64
+msgid "color"
+msgstr "цвет"
+
+#: managment/models.py:49
+msgid "banned"
+msgstr "забанен ли"
+
+#: managment/models.py:52
+msgid "should send report"
+msgstr ""
+
+#: managment/models.py:55
+msgid "relationship"
+msgstr ""
+
+#: managment/models.py:63
+msgid "patient"
+msgstr ""
+
+#: managment/models.py:65
+msgid "font"
+msgstr ""
+
+#: managment/models.py:66
+msgid "city"
+msgstr ""
+
+#: managment/models.py:71
+msgid "price"
+msgstr ""
+
+#: managment/models.py:76
+msgid "bill"
+msgstr ""
+
+#: managment/models.py:77 managment/models.py:90
+msgid "date_start"
+msgstr ""
+
+#: managment/models.py:78
+msgid "billing method"
+msgstr ""
+
+#: managment/models.py:85
+msgid "specialty"
+msgstr ""
+
+#: managment/serializers.py:102
+msgid "patientGuardianRelation doesn't exist or banned"
+msgstr "Нету связи или забанен"
+
+#: managment/serializers.py:184
+msgid "Old password is not correct"
+msgstr "Старый пароль неверный"
+
+#: managment/views.py:112
+msgid "patient doesn't exist"
+msgstr "Пациент не найден"
+
+#: managment/views.py:134
+msgid "guardian doesn't exist"
+msgstr "Опекун не найден"
+
+#: managment/views.py:153
+msgid "user doesn't exist"
+msgstr "Пользователя не существует"
+
+#: managment/views.py:178 managment/views.py:187 managment/views.py:203
+#: managment/views.py:212 managment/views.py:246
+msgid "ward not found"
+msgstr "Пациент не найден"
+
+#: managment/views.py:283
+msgid "Invalid code"
+msgstr "Неправильный код"
+
+#: managment/views.py:298
+msgid "Too much connections"
+msgstr "Слишком много связей"
+
+#: managment/views.py:314
+msgid "Already bought"
+msgstr "Уже купил"
+
+#: managment/views.py:327
+msgid "You are not patient"
+msgstr "Вы не пациент"

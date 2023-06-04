@@ -1,13 +1,12 @@
-from time import sleep
 import datetime
-from django.db.models import Q
+from time import sleep
 
 from django.contrib.auth.models import User
-from django.views import View
 from rest_framework import generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -77,26 +76,6 @@ class WhoIAmView(generics.ListAPIView):
         return Response(res, status=status.HTTP_200_OK)
 
 
-class WardViewSet(viewsets.ModelViewSet):
-    serializer_class = PatientSerializer
-    permission_classes = [IsAuthenticated]
-    #
-    def get_object(self):
-        queryset = self.filter_queryset(self.get_queryset())
-        return queryset.get(user=self.request.user)
-
-    def get_queryset(self):
-        try:
-            guardian = Guardian.objects.get(user=self.request.user)
-            ward_list = PatienGuardianRelation.objects.filter(guardian=guardian)
-        except User.DoesNotExist:
-            raise ValidationError({"detail": "user doesn't exist"})
-        except Guardian.DoesNotExist:
-            raise ValidationError({"detail": "guardian doesn't exist"})
-        ward_list = [ward.patient for ward in ward_list]
-        return ward_list
-
-
 class PatientViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = PatientSerializer
     permission_classes = [IsAuthenticated]
@@ -130,14 +109,15 @@ class PatientSettingViewSet(viewsets.ModelViewSet):
             else:
                 return PatientSetting.objects.filter(patient=user.patient)
         except Patient.DoesNotExist:
-            raise ValidationError({"detail": "patient doesn't exist"})
+            raise ValidationError({"detail": _("patient doesn't exist")})
 
 
 class GuardianSettingViewSet(viewsets.ModelViewSet):
     queryset = GuardianSetting.objects.all()
     serializer_class = GuardianSettingSerializer
- 
+
     permission_classes = [IsAuthenticated]
+
     def get_object(self):
         queryset = GuardianSetting.objects.all()
         # raise  Exception(queryset, GuardianSetting.objects.all())
@@ -151,7 +131,7 @@ class GuardianSettingViewSet(viewsets.ModelViewSet):
             else:
                 return GuardianSetting.objects.filter(guardian=user.guardian)
         except Guardian.DoesNotExist:
-            raise ValidationError({"detail": "guardian doesn't exist"})
+            raise ValidationError({"detail": _("guardian doesn't exist")})
 
 
 class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateModelMixin, viewsets.GenericViewSet):
@@ -170,8 +150,7 @@ class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateMo
             else:
                 return Guardian.objects.filter(user=user)
         except User.DoesNotExist:
-            raise ValidationError({"detail": "user doesn't exist"})
-
+            raise ValidationError({"detail": _("user doesn't exist")})
 
 
 class TariffViewSet(viewsets.ModelViewSet):
@@ -196,7 +175,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
                 request.user = ward.user
             except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
+                raise ValidationError({"detail": _("ward not found")})
         return super().create(request)
 
     def get_queryset(self):
@@ -205,15 +184,14 @@ class DoctorViewSet(viewsets.ModelViewSet):
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
-            return Doctor.objects.filter(patient=ward)
+                raise ValidationError({"detail": _("ward not found")})
+            return Doctor.objects.filter(patient=ward).order_by('id')
         else:
-            return Doctor.objects.filter(patient__user=self.request.user)
+            return Doctor.objects.filter(patient__user=self.request.user).order_by('id')
 
 
 class DoctorVisitViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-
 
     def create(self, request):
         if 'as_patient' not in self.request.query_params:
@@ -222,7 +200,7 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
                 request.user = ward.user
             except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
+                raise ValidationError({"detail": _("ward not found")})
         return super().create(request)
 
     def get_queryset(self):
@@ -231,30 +209,17 @@ class DoctorVisitViewSet(viewsets.ModelViewSet):
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
-            return DoctorVisit.objects.filter(patient=ward)
+                raise ValidationError({"detail": _("ward not found")})
+            return DoctorVisit.objects.filter(patient=ward).order_by('id')
         else:
-            return DoctorVisit.objects.filter(patient__user=self.request.user)
-
-    def destroy(self, request, *args, **kwargs):
-        if 'as_patient' not in self.request.query_params:
-            try:
-                guardian = Guardian.objects.get(user=self.request.user)
-                ward = GuardianSetting.objects.get(guardian=guardian).patient_current
-                request.user = ward.user
-            except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
-
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
+            return DoctorVisit.objects.filter(patient__user=self.request.user).order_by('id')
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return ReadOnlyDoctorVisitSerializer
         else:
             return DoctorVisitSerializer
+
 
 class VisitViewDateSet(viewsets.ModelViewSet):
     # serializer_class = MainCureSerializer
@@ -278,7 +243,7 @@ class VisitViewDateSet(viewsets.ModelViewSet):
                 guardian = Guardian.objects.get(user=self.request.user)
                 ward = GuardianSetting.objects.get(guardian=guardian).patient_current
             except Exception:
-                raise ValidationError({"detail": "404 bad ward"})
+                raise ValidationError({"detail": _("ward not found")})
             return DoctorVisit.objects.filter(patient=ward)
         else:
             return DoctorVisit.objects.filter(patient__user=self.request.user)
@@ -288,6 +253,8 @@ class VisitViewDateSet(viewsets.ModelViewSet):
             return ReadOnlyDoctorVisitSerializer
         else:
             return DoctorVisitSerializer
+
+
 @api_view(http_method_names=['PATCH'])
 @permission_classes([IsAuthenticated])
 def change_password_view(request):
@@ -313,7 +280,7 @@ class ConnectionViewSet(viewsets.ModelViewSet):
         token = Token.objects.get(user=patient.user)
         code_valid = token_to_code(str(token))
         if code != code_valid:
-            return Response({'detail': "Invalid code"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': _("Invalid code")}, status=status.HTTP_400_BAD_REQUEST)
         guardian = Guardian.objects.get(user=request.user)
         should_send_report = request.data['should_send_report']
         relationship = request.data['relationship']
@@ -328,7 +295,7 @@ class ConnectionViewSet(viewsets.ModelViewSet):
                 patient=patient, guardian=guardian, should_send_report=should_send_report, relationship=relationship
             )
         else:
-            return Response({'detail': "Too much connections"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': _("Too much connections")}, status=status.HTTP_400_BAD_REQUEST)
         return Response({}, status=status.HTTP_201_CREATED)
 
 
@@ -344,7 +311,7 @@ class BuyViewSet(viewsets.ModelViewSet):
         if created:
             return Response({}, status=status.HTTP_201_CREATED)
         else:
-            return Response({"detail": 'Already bought'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": _('Already bought')}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CodeGenerateViewSet(viewsets.ModelViewSet):
@@ -357,4 +324,4 @@ class CodeGenerateViewSet(viewsets.ModelViewSet):
         try:
             return Response({"code": code, 'id': request.user.patient.id})
         except Patient.DoesNotExist:
-            raise ValidationError({'detail': 'You are not patient'})
+            raise ValidationError({'detail': _('You are not patient')})

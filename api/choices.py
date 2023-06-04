@@ -1,7 +1,8 @@
-COLORS_CHOICES = [
-    ('white', 'white'),
-    ('black', 'black'),
+from django.utils.translation import gettext_lazy as _
 
+COLORS_CHOICES = [
+    ('white', _('white')),
+    ('black', _('black')),
 ]
 
 LANGUAGE_CHOICES = [
@@ -10,38 +11,37 @@ LANGUAGE_CHOICES = [
 ]
 
 TYPE_CHOICES = [
-    ('injection', 'injection'),
-    ('ampule', 'ampule'),
-    ('pill', 'pill'),
-    ('suspension', 'suspension'),
-    ('bag', 'bag'),
-    ('aerosols', 'aerosols'),
-    ('capsules', 'capsules'),
+    ('injection', _('injection')),
+    ('ampule', _('ampule')),
+    ('pill', _('pill')),
+    ('suspension', _('suspension')),
+    ('bag', _('bag')),
+    ('aerosols', _('aerosols')),
+    ('capsules', _('capsules')),
 ]
 
 SPEC_CHOICES = [
-    ('endocrinologist', 'endocrinologist'),
-    ('neurologist', 'neurologist'),
-    ('therapist', 'therapist'),
-    ('cardiologist', 'cardiologist'),
-    ('ophthalmologist', 'ophthalmologist'),
-    ('nutritionist', 'nutritionist'),
-    ('surgeon', 'surgeon'),
+    ('endocrinologist', _('endocrinologist')),
+    ('neurologist', _('neurologist')),
+    ('therapist', _('therapist')),
+    ('cardiologist', _('cardiologist')),
+    ('ophthalmologist', _('ophthalmologist')),
+    ('nutritionist', _('nutritionist')),
+    ('surgeon', _('surgeon')),
 ]
 FOOD_CHOICES = [
-    ('Before meals', 'Before meals'),
-    ('While eating', 'While eating'),
-    ('After meal', 'After meal'),
-    ('No matter', 'No matter')
+    ('Before meals', _('Before meals')),
+    ('While eating', _('While eating')),
+    ('After meal', _('After meal')),
+    ('No matter', _('No matter')),
 ]
 DOSE_CHOICES = [
-    ('pcs', 'pcs'),
-    ('ml', 'ml'),
-
+    ('pcs', _('pcs')),
+    ('ml', _('ml')),
 ]
 DEVISE_CHOICES = [
-    ('tablet', 'tablet'),
-    ('phone', 'phone'),
-    ('notebook', 'notebook'),
-    ('desktop', 'desktop'),
+    ('tablet', _('tablet')),
+    ('phone', _('phone')),
+    ('notebook', _('notebook')),
+    ('desktop', _('desktop')),
 ]

@@ -1,11 +1,22 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Doctor, DoctorVisit, Guardian, Patient, PatientSetting, Tariff, Tranzaction, GuardianSetting, \
-    PatientGuardianRelation, Buyer
+from .models import (
+    Buyer,
+    Doctor,
+    DoctorVisit,
+    Guardian,
+    GuardianSetting,
+    Patient,
+    PatientGuardianRelation,
+    PatientSetting,
+    Tariff,
+    Tranzaction,
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -68,6 +79,11 @@ class GuardianSerializer(serializers.ModelSerializer):
 
 
 class PatientSettingSerializer(serializers.ModelSerializer):
+    language_label = serializers.SerializerMethodField()
+
+    def get_language_label(self, patient_setting):
+        return _(patient_setting.language)
+
     class Meta:
         model = PatientSetting
         fields = "__all__"
@@ -76,6 +92,14 @@ class PatientSettingSerializer(serializers.ModelSerializer):
 class GuardianSettingSerializer(serializers.ModelSerializer):
     # patient_current = serializers.IntegerField()
     patient_current = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
+    theme_label = serializers.SerializerMethodField()
+    language_label = serializers.SerializerMethodField()
+
+    def get_language_label(self, guard_setting):
+        return _(guard_setting.language)
+
+    def get_theme_label(self, guard_setting):
+        return _(guard_setting.theme)
 
     # def to_internal_value(self, data):
     #     data['patient_current'] = PatientSerializer(Patient.objects.get(id=data['patient_current'])).data
@@ -84,15 +108,16 @@ class GuardianSettingSerializer(serializers.ModelSerializer):
         # raise Exception(instance.guardian)
         if 'patient_current' in validated_data:
             try:
-                PatientGuardianRelation.objects.get(guardian=instance.guardian, patient=validated_data['patient_current'],banned=False)
+                PatientGuardianRelation.objects.get(
+                    guardian=instance.guardian, patient=validated_data['patient_current'], banned=False
+                )
             except PatientGuardianRelation.DoesNotExist:
-                raise ValidationError({"detail": "patientGuardianRelation doesn't exist or banned"})
+                raise ValidationError({"detail": _("patientGuardianRelation doesn't exist or banned")})
         return super().update(instance, validated_data)
 
     class Meta:
         model = GuardianSetting
         fields = "__all__"
-
 
 
 class TariffSerializer(serializers.ModelSerializer):
@@ -108,6 +133,11 @@ class TranzactionSerializer(serializers.ModelSerializer):
 
 
 class DoctorSerializer(serializers.ModelSerializer):
+    specialty_label = serializers.SerializerMethodField()
+
+    def get_specialty_label(self, doctor):
+        return _(doctor.specialty)
+
     def create(self, validated_data):
         validated_data['patient'] = self.context['request'].user.patient
         return super().create(validated_data)
@@ -169,7 +199,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     def validate_password_old(self, password_old):
         if not self.instance.check_password(password_old):
-            raise ValidationError('Old password is not correct')
+            raise ValidationError(_('Old password is not correct'))
         return password_old
 
     def update(self, instance, validated_data):
@@ -177,11 +207,6 @@ class ChangePasswordSerializer(serializers.Serializer):
         instance.save()
         return instance
 
-
-# class BuySerializer(serializers.Serializer):
-#     code = serializers.IntegerField(min_value=100000)
-#     should_send_report = serializers.BooleanField()
-#     relationship = serializers.CharField(max_length=128, min_length=8)
 
 class PatientGuardianRelationSerializer(serializers.ModelSerializer):
     patient = PatientSerializer()

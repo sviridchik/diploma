@@ -1,0 +1,78 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-06-03 16:57+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
+"%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: statistic/models.py:13 statistic/models.py:21 statistic/models.py:28
+#: statistic/models.py:34 statistic/models.py:40 statistic/models.py:47
+msgid "user"
+msgstr "Пользователь"
+
+#: statistic/models.py:14 statistic/models.py:55
+msgid "title"
+msgstr "Заголовок"
+
+#: statistic/models.py:22 statistic/models.py:51
+msgid "report"
+msgstr "Отчёт"
+
+#: statistic/models.py:29
+msgid "api"
+msgstr "Апи"
+
+#: statistic/models.py:30
+msgid "type_of_devise"
+msgstr "Тип девайса"
+
+#: statistic/models.py:35
+msgid "action"
+msgstr "Действие"
+
+#: statistic/models.py:36 statistic/models.py:42 statistic/models.py:49
+msgid "date"
+msgstr "Дата"
+
+#: statistic/models.py:43
+msgid "is_informed"
+msgstr ""
+
+#: statistic/models.py:50
+msgid "is_late"
+msgstr ""
+
+#: statistic/models.py:60
+msgid "days_attended"
+msgstr ""
+
+#: statistic/models.py:61
+msgid "days_no_miss"
+msgstr ""
+
+#: statistic/models.py:62
+msgid "number_in_time"
+msgstr ""
+
+#: statistic/models.py:65
+msgid "praise_from_guard"
+msgstr ""
+
+#: statistic/views.py:138
+msgid "ward not found"
+msgstr "Пациент не найден"
