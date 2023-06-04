@@ -94,7 +94,20 @@ msgstr "таблетка"
 
 #: choices.py:17
 msgid "suspension"
-msgstr "суспензия"
+msgstr "супензия"
+
+#: choices.py:18
+msgid "bag"
+msgstr "пакетик"
+
+#: choices.py:19
+msgid "aerosols"
+msgstr "аэрозоль"
+
+#: choices.py:20
+msgid "capsules"
+msgstr "капсула"
+
 
 #: choices.py:21
 msgid "endocrinologist"
