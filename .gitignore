@@ -97,3 +97,5 @@ test.jpeg
 
 api/media/
 api/media_archive/
+
+mysql.cnf
