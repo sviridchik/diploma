@@ -156,7 +156,6 @@ class GuardianViewSet(viewsets.mixins.CreateModelMixin, viewsets.mixins.UpdateMo
 class TariffViewSet(viewsets.ModelViewSet):
     queryset = Tariff.objects.all()
     serializer_class = TariffSerializer
-    permission_classes = [IsAuthenticated]
 
 
 class TranzactionViewSet(viewsets.ModelViewSet):
